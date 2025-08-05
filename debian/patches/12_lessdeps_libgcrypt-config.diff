@@ -4,9 +4,9 @@ Origin: vendor
 Bug-Debian: http://bugs.debian.org/405238
 Last-Update: 2014-01-04
 
---- libgcrypt20-1.6.0.orig/src/libgcrypt-config.in
-+++ libgcrypt20-1.6.0/src/libgcrypt-config.in
-@@ -159,7 +159,8 @@ if test "$echo_libs" = "yes"; then
+--- a/src/libgcrypt-config.in
++++ b/src/libgcrypt-config.in
+@@ -171,7 +171,8 @@ if test "$echo_libs" = "yes"; then
      fi
  
      # Set up `libs_final'.
