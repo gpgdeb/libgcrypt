@@ -1,3 +1,121 @@
+2025-08-04  Werner Koch  <wk@gnupg.org>
+
+	Release 1.11.2.
+	+ commit 737cc63600146f196738a6768679eb016cf866e9
+
+
+2025-07-31  NIIBE Yutaka  <gniibe@fsij.org>
+
+	Mark nonstring use cases with __nonstring__ attribute.
+	+ commit db55dfb74e64520a4a1c67ecb67d4a3f31979087
+	* src/gcrypt.h.in (_GCRY_GCC_ATTR_NONSTRING): New.
+	* cipher/chacha20.c (chacha20_keysetup): Use _GCRY_GCC_ATTR_NONSTRING.
+	* cipher/cipher-gcm-siv.c (gcm_siv_selftest): Likewise.
+	* cipher/ecc.c (compute_keygrip): Likewise.
+	* cipher/serpent.c (serpent_test): Likewise.
+	* tests/basic.c (check_aes128_cbc_cts_cipher): Likewise.
+	(_check_gcm_cipher, check_gcm_siv_cipher): Likewise.
+	(check_ocb_cipher_largebuf_split, check_ocb_cipher_checksum): Likewise.
+	* tests/keygrip.c (key_grips): Likewise.
+
+2025-07-31  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	poly1305-p10le: use '.rodata' section for read-only data.
+	+ commit c720dd8927a5c3f6b132527276fde2780067653e
+	* cipher/poly1305-p10le.s: Change '.data' section to '.rodata'.
+
+	Add missing abiversion tag for PowerPC assembly.
+	+ commit 013bcc18676dfe8f3b5a7da1ff9a2de97dfc4979
+	* cipher/chacha20-p10le-8x.s: Add abiversion tag.
+	* cipher/poly1305-p10le.s: Likewise.
+	* configure.ac (gcry_cv_gcc_inline_asm_ppc_altivec)
+	(gcry_cv_gcc_inline_asm_ppc_arch_3_00): Likewise.
+
+	Add missing machine tags for PowerPC assembly.
+	+ commit 210562de650d14701356633ad7a27809e7250c49
+	* cipher/chacha20-p10le-8x.s: Add "any" machine tag.
+	* cipher/poly1305-p10le.s: Likewise.
+	* configure.ac (gcry_cv_gcc_inline_asm_ppc_altivec)
+	(gcry_cv_gcc_inline_asm_ppc_arch_3_00): Likewise.
+
+2025-07-31  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Provide the function prototype of __udiv_qrnnd.
+	+ commit aced8fd2323650f4fc85fdedcb8a28bab4792372
+	* mpi/longlong.h [__alpha] (__udiv_qrnnd): Add the prototype.
+	[__hppa] (__udiv_qrnnd): Likewise.
+	[__sparc__] (__udiv_qrnnd): Likewise.
+
+	cipher:ecc: Silence GCC 15 warning.
+	+ commit 7ebe90e5553b59f0e5c1421f293f1ca29948ef31
+	* cipher/ecc-eddsa.c (_gcry_ecc_eddsa_ensure_compact): Initialize
+	ENC and ENCLEN before use.
+
+2025-07-18  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:rsa: Fix missing initialization in generate_fips.
+	+ commit 448693047fac163960f132528cff6a9d5e5444d6
+	* cipher/rsa.c (generate_fips): Initialize E, P and Q.
+
+	build: More changes to allow build with no Kyber.
+	+ commit d54d834eb43453bd4749df89fa709f6429d4d5d4
+	* cipher/Makefile.am (libcipher_la_SOURCES): Move kyber.c and kyber.h
+	to ...
+	(EXTRA_libcipher_la_SOURCES): ... here.
+	* cipher/kem.c: [USE_KYBER]: Only include kyber.h when USE_KYBER.
+	(_gcry_kem_genkey, _gcry_kem_encap, _gcry_kem_decap): [USE_KYBER]:
+	Enable Kyber when USE_KYBER.
+	* tests/keygen.c (check_kem_keys): [USE_KYBER]: Enable Kyber when
+	USE_KYBER.
+
+	build: Allow build with no Kyber.
+	+ commit acd0b4347002d002bb4f141894e757da6df70c57
+	* configure.ac (GCRYPT_PUBKEY_CIPHERS): It's kyber.lo.
+	* tests/Makefile.am (tests_bin): [USE_KYBER]: Add t-mlkem only when
+	USE_KYBER.
+	* tests/t-kem.c: Allow building with no Kyber.
+
+2025-07-17  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:kem: Provide each enum constant as macro.
+	+ commit f7e06f8a29fc4c347016fc32f0878ad6a3ffee8e
+	src/gcrypt.h.in (GCRY_KEM_CM6688128F, GCRY_KEM_DHKEM25519)
+	(GCRY_KEM_DHKEM448, GCRY_KEM_DHKEMP256R1, GCRY_KEM_DHKEMP384R1)
+	(GCRY_KEM_DHKEMP521R1, GCRY_KEM_RAW_BP256, GCRY_KEM_RAW_BP384)
+	(GCRY_KEM_RAW_BP512, GCRY_KEM_RAW_MLKEM512, GCRY_KEM_RAW_MLKEM768)
+	(GCRY_KEM_RAW_MLKEM1024, GCRY_KEM_RAW_P256K1, GCRY_KEM_RAW_P256R1)
+	(GCRY_KEM_RAW_P384R1, GCRY_KEM_RAW_P521R1, GCRY_KEM_RAW_X25519)
+	(GCRY_KEM_RAW_X448, GCRY_KEM_SNTRUP761): New defines.
+
+	cipher:kem:ecc: Support secp256k1 by KEM API.
+	+ commit d9ebc6c4e8b514704defd27f8115e1f6311da19c
+	* src/gcrypt.h.in (GCRY_KEM_RAW_P256K1): New.
+	* cipher/kem-ecc.c (algo_to_curve, algo_to_seckey_len): Support
+	GCRY_KEM_RAW_P256K1.
+
+2025-05-19  Collin Funk via Gcrypt-devel  <gcrypt-devel@gnupg.org>
+
+	Fix missing simd-common-riscv.h in libgcrypt tarball.
+	+ commit 62f84bb3040fc138f061032889574f82ce72a0bc
+	* cipher/Makefile.am (EXTRA_libcipher_la_SOURCES): Add
+	simd-common-riscv.h.
+
+2025-05-15  Collin Funk  <collin.funk1@gmail.com>
+
+	tests: Fix link errors for t-thread-local.
+	+ commit a47fb91496554316045a8a62f49b1a45aef25d4c
+	On platforms where pthread_create is not in libc t-thread-local fails to
+	link.  Issue found on NetBSD 10.0.
+	* tests/Makefile.am (t_thread_local_LDADD): Add $(standard_ldadd),
+	$(GPG_ERROR_MT_LIBS), and @LDADD_FOR_TESTS_KLUDGE@.
+	(t_thread_local_CFLAGS): Add $(GPG_ERROR_MT_CFLAGS).
+
+2025-05-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix ungrammatical use of "allow to"
+	+ commit a1806adc5e7f7149f044c73176fa51b96d384b5b
+
+
 2025-05-07  Werner Koch  <wk@gnupg.org>
 
 	Release 1.11.1.

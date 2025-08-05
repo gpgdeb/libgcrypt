@@ -110,9 +110,10 @@ host_triplet = @host@
 @USE_RSA_TRUE@am__append_1 = pkcs1v2 t-rsa-pss t-rsa-15 t-rsa-testparm
 @USE_DSA_TRUE@am__append_2 = fips186-dsa dsa-rfc6979 t-dsa
 @USE_ECC_TRUE@am__append_3 = curves t-ecdsa t-ed25519 t-cv25519 t-x448 t-ed448
-TESTS = $(am__EXEEXT_4) $(tests_sh) $(am__EXEEXT_5) $(tests_sh_last)
+@USE_KYBER_TRUE@am__append_4 = t-mlkem
+TESTS = $(am__EXEEXT_5) $(tests_sh) $(am__EXEEXT_6) $(tests_sh_last)
 EXTRA_PROGRAMS = testapi$(EXEEXT) pkbench$(EXEEXT)
-noinst_PROGRAMS = testdrv$(EXEEXT) $(am__EXEEXT_4) $(am__EXEEXT_5) \
+noinst_PROGRAMS = testdrv$(EXEEXT) $(am__EXEEXT_5) $(am__EXEEXT_6) \
 	fipsdrv$(EXEEXT) rsacvt$(EXEEXT) genhashdata$(EXEEXT) \
 	gchash$(EXEEXT)
 subdir = tests
@@ -138,16 +139,17 @@ CONFIG_CLEAN_VPATH_FILES =
 @USE_ECC_TRUE@am__EXEEXT_3 = curves$(EXEEXT) t-ecdsa$(EXEEXT) \
 @USE_ECC_TRUE@	t-ed25519$(EXEEXT) t-cv25519$(EXEEXT) \
 @USE_ECC_TRUE@	t-x448$(EXEEXT) t-ed448$(EXEEXT)
-am__EXEEXT_4 = version$(EXEEXT) t-secmem$(EXEEXT) mpitests$(EXEEXT) \
+@USE_KYBER_TRUE@am__EXEEXT_4 = t-mlkem$(EXEEXT)
+am__EXEEXT_5 = version$(EXEEXT) t-secmem$(EXEEXT) mpitests$(EXEEXT) \
 	t-sexp$(EXEEXT) t-convert$(EXEEXT) t-mpi-bit$(EXEEXT) \
 	t-mpi-point$(EXEEXT) t-lock$(EXEEXT) prime$(EXEEXT) \
 	basic$(EXEEXT) keygen$(EXEEXT) pubkey$(EXEEXT) hmac$(EXEEXT) \
 	hashtest$(EXEEXT) t-kdf$(EXEEXT) keygrip$(EXEEXT) \
 	aeswrap$(EXEEXT) random$(EXEEXT) t-kem$(EXEEXT) \
-	t-mlkem$(EXEEXT) t-thread-local$(EXEEXT) \
-	t-fips-service-ind$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
-	$(am__EXEEXT_3)
-am__EXEEXT_5 = benchmark$(EXEEXT) bench-slope$(EXEEXT)
+	t-thread-local$(EXEEXT) t-fips-service-ind$(EXEEXT) \
+	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
+	$(am__EXEEXT_4)
+am__EXEEXT_6 = benchmark$(EXEEXT) bench-slope$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 aeswrap_SOURCES = aeswrap.c
 aeswrap_OBJECTS = aeswrap.$(OBJEXT)
@@ -315,9 +317,12 @@ t_sexp_OBJECTS = t-sexp.$(OBJEXT)
 t_sexp_LDADD = $(LDADD)
 t_sexp_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
 t_thread_local_SOURCES = t-thread-local.c
-t_thread_local_OBJECTS = t-thread-local.$(OBJEXT)
-t_thread_local_LDADD = $(LDADD)
+t_thread_local_OBJECTS = t_thread_local-t-thread-local.$(OBJEXT)
 t_thread_local_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
+t_thread_local_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(t_thread_local_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
+	$@
 t_x448_SOURCES = t-x448.c
 t_x448_OBJECTS = t-x448.$(OBJEXT)
 t_x448_LDADD = $(LDADD)
@@ -365,10 +370,11 @@ am__depfiles_remade = ./$(DEPDIR)/aeswrap.Po ./$(DEPDIR)/basic.Po \
 	./$(DEPDIR)/t-mpi-bit.Po ./$(DEPDIR)/t-mpi-point.Po \
 	./$(DEPDIR)/t-rsa-15.Po ./$(DEPDIR)/t-rsa-pss.Po \
 	./$(DEPDIR)/t-rsa-testparm.Po ./$(DEPDIR)/t-secmem.Po \
-	./$(DEPDIR)/t-sexp.Po ./$(DEPDIR)/t-thread-local.Po \
-	./$(DEPDIR)/t-x448.Po ./$(DEPDIR)/t_kdf-t-kdf.Po \
-	./$(DEPDIR)/t_lock-t-lock.Po ./$(DEPDIR)/testapi.Po \
-	./$(DEPDIR)/testdrv.Po ./$(DEPDIR)/version.Po
+	./$(DEPDIR)/t-sexp.Po ./$(DEPDIR)/t-x448.Po \
+	./$(DEPDIR)/t_kdf-t-kdf.Po ./$(DEPDIR)/t_lock-t-lock.Po \
+	./$(DEPDIR)/t_thread_local-t-thread-local.Po \
+	./$(DEPDIR)/testapi.Po ./$(DEPDIR)/testdrv.Po \
+	./$(DEPDIR)/version.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -628,9 +634,9 @@ top_srcdir = @top_srcdir@
 # the driver is only used for cross-compiling.
 tests_bin = version t-secmem mpitests t-sexp t-convert t-mpi-bit \
 	t-mpi-point t-lock prime basic keygen pubkey hmac hashtest \
-	t-kdf keygrip aeswrap random t-kem t-mlkem t-thread-local \
+	t-kdf keygrip aeswrap random t-kem t-thread-local \
 	t-fips-service-ind $(am__append_1) $(am__append_2) \
-	$(am__append_3)
+	$(am__append_3) $(am__append_4)
 tests_bin_last = benchmark bench-slope
 tests_sh = basic-disable-all-hwf
 tests_sh_last = hashtest-6g hashtest-256g
@@ -664,6 +670,8 @@ t_secmem_LDADD = $(standard_ldadd) @LDADD_FOR_TESTS_KLUDGE@
 testapi_LDADD = $(standard_ldadd) @LDADD_FOR_TESTS_KLUDGE@
 t_lock_LDADD = $(standard_ldadd) $(GPG_ERROR_MT_LIBS) @LDADD_FOR_TESTS_KLUDGE@
 t_lock_CFLAGS = $(GPG_ERROR_MT_CFLAGS)
+t_thread_local_LDADD = $(standard_ldadd) $(GPG_ERROR_MT_LIBS) @LDADD_FOR_TESTS_KLUDGE@
+t_thread_local_CFLAGS = $(GPG_ERROR_MT_CFLAGS)
 testdrv_LDADD = $(LDADD_FOR_TESTS_KLUDGE)
 @HAVE_W32_SYSTEM_FALSE@xtestsuite_libs = ../src/.libs/libgcrypt.so*
 @HAVE_W32_SYSTEM_TRUE@xtestsuite_libs = ../src/.libs/libgcrypt-20.dll \
@@ -882,7 +890,7 @@ t-sexp$(EXEEXT): $(t_sexp_OBJECTS) $(t_sexp_DEPENDENCIES) $(EXTRA_t_sexp_DEPENDE
 
 t-thread-local$(EXEEXT): $(t_thread_local_OBJECTS) $(t_thread_local_DEPENDENCIES) $(EXTRA_t_thread_local_DEPENDENCIES) 
 	@rm -f t-thread-local$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(t_thread_local_OBJECTS) $(t_thread_local_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(t_thread_local_LINK) $(t_thread_local_OBJECTS) $(t_thread_local_LDADD) $(LIBS)
 
 t-x448$(EXEEXT): $(t_x448_OBJECTS) $(t_x448_DEPENDENCIES) $(EXTRA_t_x448_DEPENDENCIES) 
 	@rm -f t-x448$(EXEEXT)
@@ -943,10 +951,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-rsa-testparm.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-secmem.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-sexp.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-thread-local.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-x448.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_kdf-t-kdf.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_lock-t-lock.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_thread_local-t-thread-local.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testapi.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testdrv.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/version.Po@am__quote@ # am--include-marker
@@ -1005,6 +1013,20 @@ t_lock-t-lock.obj: t-lock.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='t-lock.c' object='t_lock-t-lock.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_lock_CFLAGS) $(CFLAGS) -c -o t_lock-t-lock.obj `if test -f 't-lock.c'; then $(CYGPATH_W) 't-lock.c'; else $(CYGPATH_W) '$(srcdir)/t-lock.c'; fi`
+
+t_thread_local-t-thread-local.o: t-thread-local.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_thread_local_CFLAGS) $(CFLAGS) -MT t_thread_local-t-thread-local.o -MD -MP -MF $(DEPDIR)/t_thread_local-t-thread-local.Tpo -c -o t_thread_local-t-thread-local.o `test -f 't-thread-local.c' || echo '$(srcdir)/'`t-thread-local.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/t_thread_local-t-thread-local.Tpo $(DEPDIR)/t_thread_local-t-thread-local.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='t-thread-local.c' object='t_thread_local-t-thread-local.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_thread_local_CFLAGS) $(CFLAGS) -c -o t_thread_local-t-thread-local.o `test -f 't-thread-local.c' || echo '$(srcdir)/'`t-thread-local.c
+
+t_thread_local-t-thread-local.obj: t-thread-local.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_thread_local_CFLAGS) $(CFLAGS) -MT t_thread_local-t-thread-local.obj -MD -MP -MF $(DEPDIR)/t_thread_local-t-thread-local.Tpo -c -o t_thread_local-t-thread-local.obj `if test -f 't-thread-local.c'; then $(CYGPATH_W) 't-thread-local.c'; else $(CYGPATH_W) '$(srcdir)/t-thread-local.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/t_thread_local-t-thread-local.Tpo $(DEPDIR)/t_thread_local-t-thread-local.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='t-thread-local.c' object='t_thread_local-t-thread-local.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_thread_local_CFLAGS) $(CFLAGS) -c -o t_thread_local-t-thread-local.obj `if test -f 't-thread-local.c'; then $(CYGPATH_W) 't-thread-local.c'; else $(CYGPATH_W) '$(srcdir)/t-thread-local.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1268,10 +1290,10 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/t-rsa-testparm.Po
 	-rm -f ./$(DEPDIR)/t-secmem.Po
 	-rm -f ./$(DEPDIR)/t-sexp.Po
-	-rm -f ./$(DEPDIR)/t-thread-local.Po
 	-rm -f ./$(DEPDIR)/t-x448.Po
 	-rm -f ./$(DEPDIR)/t_kdf-t-kdf.Po
 	-rm -f ./$(DEPDIR)/t_lock-t-lock.Po
+	-rm -f ./$(DEPDIR)/t_thread_local-t-thread-local.Po
 	-rm -f ./$(DEPDIR)/testapi.Po
 	-rm -f ./$(DEPDIR)/testdrv.Po
 	-rm -f ./$(DEPDIR)/version.Po
@@ -1357,10 +1379,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/t-rsa-testparm.Po
 	-rm -f ./$(DEPDIR)/t-secmem.Po
 	-rm -f ./$(DEPDIR)/t-sexp.Po
-	-rm -f ./$(DEPDIR)/t-thread-local.Po
 	-rm -f ./$(DEPDIR)/t-x448.Po
 	-rm -f ./$(DEPDIR)/t_kdf-t-kdf.Po
 	-rm -f ./$(DEPDIR)/t_lock-t-lock.Po
+	-rm -f ./$(DEPDIR)/t_thread_local-t-thread-local.Po
 	-rm -f ./$(DEPDIR)/testapi.Po
 	-rm -f ./$(DEPDIR)/testdrv.Po
 	-rm -f ./$(DEPDIR)/version.Po
