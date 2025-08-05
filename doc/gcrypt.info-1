@@ -1,8 +1,7 @@
 This is gcrypt.info, produced by makeinfo version 6.8 from gcrypt.texi.
 
-This manual is for Libgcrypt version 1.11.1 and was last updated 17
-March 2025.  Libgcrypt is GNU's library of cryptographic building
-blocks.
+This manual is for Libgcrypt version 1.11.2 and was last updated 12 May
+2025.  Libgcrypt is GNU's library of cryptographic building blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
 Free Software Foundation, Inc.
@@ -25,9 +24,8 @@ File: gcrypt.info,  Node: Top,  Next: Introduction,  Up: (dir)
 The Libgcrypt Library
 *********************
 
-This manual is for Libgcrypt version 1.11.1 and was last updated 17
-March 2025.  Libgcrypt is GNU's library of cryptographic building
-blocks.
+This manual is for Libgcrypt version 1.11.2 and was last updated 12 May
+2025.  Libgcrypt is GNU's library of cryptographic building blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
 Free Software Foundation, Inc.
@@ -1039,7 +1037,7 @@ error codes what they mean usually.  Some error values have specific
 meanings if returned by a certain functions.  Such cases are described
 in the documentation of those functions.
 
-   Libgcrypt uses the 'libgpg-error' library.  This allows to share the
+   Libgcrypt uses the 'libgpg-error' library.  This allows sharing the
 error codes with other components of the GnuPG system, and to pass error
 values transparently from the crypto engine, or some helper application
 of the crypto engine, to the user.  This way no information is lost.  As
@@ -1319,7 +1317,7 @@ list includes the most important error codes.
 
 'GPG_ERR_NOT_OPERATIONAL'
      This value means that the library is not yet in state which allows
-     to use this function.  This error code is in particular returned if
+     using this function.  This error code is in particular returned if
      Libgcrypt is operated in FIPS mode and the internal state of the
      library does not yet or not anymore allow the use of a service.
 
@@ -2245,7 +2243,7 @@ in uppercase indicate parameters, whereas lowercase words are literals.
 
    Note that all MPI (multi-precision-integers) values are expected to
 be in 'GCRYMPI_FMT_USG' format.  An easy way to create S-expressions is
-by using 'gcry_sexp_build' which allows to pass a string with
+by using 'gcry_sexp_build' which allows passing a string with
 printf-like escapes to insert MPI values.
 
 * Menu:
@@ -2645,7 +2643,7 @@ data.  There are 2 functions to do this:
      expected as an appropriate S-expression (see above) in PKEY.  The
      data to be encrypted can either be in the simple old format, which
      is a very simple S-expression consisting only of one MPI, or it may
-     be a more complex S-expression which also allows to specify flags
+     be a more complex S-expression which also allows specifying flags
      for operation, like e.g., padding rules.
 
      If you don't want to let Libgcrypt handle the padding, you must
@@ -2741,7 +2739,7 @@ similar to the encryption functions:
      private key SKEY and place it into the variable at the address of
      R_SIG.  DATA may either be the simple old style S-expression with
      just one MPI or a modern and more versatile S-expression which
-     allows to let Libgcrypt handle padding:
+     allows letting Libgcrypt handle padding:
 
            (data
             (flags pkcs1)
@@ -3064,7 +3062,7 @@ Libgcrypt also provides a function to generate public key pairs:
 
      'curve NAME'
           For ECC a named curve may be used instead of giving the number
-          of requested bits.  This allows to request a specific curve to
+          of requested bits.  This allows requesting a specific curve to
           override a default selection Libgcrypt would have taken if
           'nbits' has been given.  The available names are listed with
           the description of the ECC public key parameters.
@@ -5054,7 +5052,7 @@ File: gcrypt.info,  Node: EC functions,  Next: Miscellaneous,  Prev: Bit manipul
 =================
 
 Libgcrypt provides an API to access low level functions used by its
-elliptic curve implementation.  These functions allow to implement
+elliptic curve implementation.  These functions allow implementing
 elliptic curve methods for which no explicit support is available.
 
  -- Function: gcry_mpi_point_t gcry_mpi_point_new (unsigned int NBITS)

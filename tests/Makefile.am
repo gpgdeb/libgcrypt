@@ -25,7 +25,7 @@ tests_bin = \
         version t-secmem mpitests t-sexp t-convert \
 	t-mpi-bit t-mpi-point t-lock \
 	prime basic keygen pubkey hmac hashtest t-kdf keygrip \
-	aeswrap random t-kem t-mlkem t-thread-local t-fips-service-ind
+	aeswrap random t-kem t-thread-local t-fips-service-ind
 
 if USE_RSA
 tests_bin += pkcs1v2 t-rsa-pss t-rsa-15 t-rsa-testparm
@@ -39,6 +39,9 @@ if USE_ECC
 tests_bin += curves t-ecdsa t-ed25519 t-cv25519 t-x448 t-ed448
 endif
 
+if USE_KYBER
+tests_bin += t-mlkem
+endif
 
 tests_bin_last = benchmark bench-slope
 
@@ -94,6 +97,8 @@ t_secmem_LDADD = $(standard_ldadd) @LDADD_FOR_TESTS_KLUDGE@
 testapi_LDADD = $(standard_ldadd) @LDADD_FOR_TESTS_KLUDGE@
 t_lock_LDADD = $(standard_ldadd) $(GPG_ERROR_MT_LIBS) @LDADD_FOR_TESTS_KLUDGE@
 t_lock_CFLAGS = $(GPG_ERROR_MT_CFLAGS)
+t_thread_local_LDADD = $(standard_ldadd) $(GPG_ERROR_MT_LIBS) @LDADD_FOR_TESTS_KLUDGE@
+t_thread_local_CFLAGS = $(GPG_ERROR_MT_CFLAGS)
 testdrv_LDADD = $(LDADD_FOR_TESTS_KLUDGE)
 
 # Build a version of the test driver for the build platform.

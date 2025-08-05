@@ -31,7 +31,7 @@ min_automake_version="1.14"
 m4_define([mym4_package],[libgcrypt])
 m4_define([mym4_major], [1])
 m4_define([mym4_minor], [11])
-m4_define([mym4_micro], [1])
+m4_define([mym4_micro], [2])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -55,9 +55,10 @@ AC_INIT([mym4_package],[mym4_version],[https://bugs.gnupg.org])
 #   (Interfaces removed:    CURRENT++, AGE=0, REVISION=0)
 #   (Interfaces added:      CURRENT++, AGE++, REVISION=0)
 #   (No interfaces changed:                   REVISION++)
-LIBGCRYPT_LT_CURRENT=25
-LIBGCRYPT_LT_AGE=5
-LIBGCRYPT_LT_REVISION=1
+# NOTE: Already upadated for 1.11.2 - remove this comment for release
+LIBGCRYPT_LT_CURRENT=26
+LIBGCRYPT_LT_AGE=6
+LIBGCRYPT_LT_REVISION=0
 ################################################
 
 AC_SUBST(LIBGCRYPT_LT_CURRENT)
@@ -2414,7 +2415,9 @@ AC_CACHE_CHECK([whether GCC inline assembler supports PowerPC AltiVec/VSX/crypto
         else
           gcry_cv_gcc_inline_asm_ppc_altivec=no
           AC_LINK_IFELSE([AC_LANG_PROGRAM(
-          [[__asm__(".globl testfn;\n"
+          [[__asm__(".machine \"any\"\n"
+                    ".abiversion 2\n"
+                    ".globl testfn;\n"
                     ".text\n\t"
                     "testfn:\n"
                     "stvx %v31,%r12,%r0;\n"
@@ -2447,7 +2450,9 @@ AC_CACHE_CHECK([whether GCC inline assembler supports PowerISA 3.00 instructions
         else
           gcry_cv_gcc_inline_asm_ppc_arch_3_00=no
           AC_LINK_IFELSE([AC_LANG_PROGRAM(
-          [[__asm__(".text\n\t"
+          [[__asm__(".machine \"any\"\n"
+                    ".abiversion 2\n"
+                    ".text\n\t"
                     ".globl testfn;\n"
                     "testfn:\n"
                     "stxvb16x %r1,%v12,%v30;\n"
@@ -2890,14 +2895,14 @@ if test "$random" = "default"; then
           random_modules="w32"
           ;;
         *)
-          # Build everything, allow to select at runtime.
+          # Build everything, allow selecting at runtime.
           random_modules="$auto_random_modules"
           ;;
         esac
     fi
 else
     if test "$random" = "auto"; then
-        # Build everything, allow to select at runtime.
+        # Build everything, allow selecting at runtime.
         random_modules="$auto_random_modules"
     else
         random_modules="$random"
@@ -3563,7 +3568,7 @@ LIST_MEMBER(kyber, $enabled_pubkey_ciphers)
 AM_CONDITIONAL(USE_KYBER, [test "$found" = "1"])
 if test "$found" = "1" ; then
    GCRYPT_PUBKEY_CIPHERS="$GCRYPT_PUBKEY_CIPHERS \
-                          kyber.c"
+                          kyber.lo"
    AC_DEFINE(USE_KYBER, 1, [Defined if this module should be included])
 fi
 
