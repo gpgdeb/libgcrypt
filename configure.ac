@@ -30,8 +30,8 @@ min_automake_version="1.14"
 # for the LT versions.
 m4_define([mym4_package],[libgcrypt])
 m4_define([mym4_major], [1])
-m4_define([mym4_minor], [11])
-m4_define([mym4_micro], [2])
+m4_define([mym4_minor], [12])
+m4_define([mym4_micro], [0])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -55,9 +55,8 @@ AC_INIT([mym4_package],[mym4_version],[https://bugs.gnupg.org])
 #   (Interfaces removed:    CURRENT++, AGE=0, REVISION=0)
 #   (Interfaces added:      CURRENT++, AGE++, REVISION=0)
 #   (No interfaces changed:                   REVISION++)
-# NOTE: Already upadated for 1.11.2 - remove this comment for release
-LIBGCRYPT_LT_CURRENT=26
-LIBGCRYPT_LT_AGE=6
+LIBGCRYPT_LT_CURRENT=27
+LIBGCRYPT_LT_AGE=7
 LIBGCRYPT_LT_REVISION=0
 ################################################
 
@@ -73,7 +72,7 @@ LIBGCRYPT_CONFIG_API_VERSION=1
 
 # If you change the required gpg-error version, please remove
 # unnecessary error code defines in src/gcrypt-int.h.
-NEED_GPG_ERROR_VERSION=1.49
+NEED_GPG_ERROR_VERSION=1.56
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/libgcrypt.vers])
@@ -214,7 +213,7 @@ available_ciphers="$available_ciphers sm4 aria"
 enabled_ciphers=""
 
 # Definitions for public-key ciphers.
-available_pubkey_ciphers="dsa elgamal rsa ecc kyber"
+available_pubkey_ciphers="dsa elgamal rsa ecc kyber dilithium"
 enabled_pubkey_ciphers=""
 
 # Definitions for message digests.
@@ -241,6 +240,13 @@ have_pthread=no
 
 # Setup some stuff depending on host.
 case "${host}" in
+    *-*-linux*)
+        # It makes no sense to check the requirement of -lpthread for
+        # libgcrypt.  It's done by libgpg-error and we use
+        # GPG_ERROR_MT_CFLAGS and GPG_ERROR_MT_LIBS in libgcrypt.
+        have_pthread=yes
+        ;;
+
     *-*-mingw32*)
       ac_cv_have_dev_random=no
       have_w32_system=yes
@@ -290,8 +296,17 @@ case "${host}" in
                   [defined if we use posix_spawn in test program])
         AC_CHECK_HEADERS(spawn.h)
         ;;
+
+    *-openedition*)
+        # The z/OS C runtime includes pthread support, and linking is
+        # handled automatically at build time.
+        have_pthread=yes
+        # mmap is not fully supported on z/OS.
+        ac_cv_func_mmap=no
+        ;;
+
     *)
-      ;;
+        ;;
 esac
 
 if test "$have_w32_system" = yes; then
@@ -316,6 +331,10 @@ case "${host}" in
 
     *-linux*)
         PRINTABLE_OS_NAME="GNU/Linux"
+        ;;
+
+    *-openedition*)
+        PRINTABLE_OS_NAME="IBM z/OS"
         ;;
 
     *)
@@ -481,7 +500,7 @@ if test "x$random" = "x" -o "$random" = "yes" -o "$random" = "no"; then
     random=default
 fi
 AC_MSG_CHECKING([which random module to use])
-if test "$random" != "default" -a "$random" != "auto"; then
+if test "$random" != "default" && test "$random" != "auto"; then
     LIST_MEMBER($random, $available_random_modules)
     if test "$found" = "0"; then
        AC_MSG_ERROR([unsupported random module specified])
@@ -816,18 +835,17 @@ AC_DEFINE(GPG_ERR_SOURCE_DEFAULT, GPG_ERR_SOURCE_GCRYPT,
           [The default error source for libgcrypt.])
 
 AM_CONDITIONAL(USE_GPGRT_CONFIG, [test -n "$GPGRT_CONFIG" \
-                                  -a "$ac_cv_path_GPG_ERROR_CONFIG" = no])
+                                  && test "$ac_cv_path_GPG_ERROR_CONFIG" = no])
 
 #
 # Check whether pthreads is available
 #
-if test "$have_w32_system" != yes; then
+if test "$have_w32_system" != yes && test "$have_pthread" != yes; then
   AC_CHECK_LIB(pthread,pthread_create,have_pthread=yes)
-  if test "$have_pthread" = yes; then
-    AC_DEFINE(HAVE_PTHREAD, 1 ,[Define if we have pthread.])
-  fi
 fi
-
+if test "$have_pthread" = yes; then
+  AC_DEFINE(HAVE_PTHREAD, 1 ,[Define if we have pthread.])
+fi
 
 # Solaris needs -lsocket and -lnsl. Unisys system includes
 # gethostbyname in libsocket but needs libnsl for socket.
@@ -2235,6 +2253,37 @@ fi
 #
 # Check whether compiler supports AArch64/NEON/crypto intrinsics
 #
+m4_define([GCRY_AARCH64_NEON_INTRINSICS_TEST],
+  [AC_LANG_SOURCE(
+    [[#include <arm_neon.h>
+      #define __m128i uint64x2_t
+      #define vpsrldq128(s, a, o) \
+	({ uint64x2_t __tmp = { 0, 0 }; \
+	    o = (__m128i)vextq_u8((uint8x16_t)a, \
+				  (uint8x16_t)__tmp, (s) & 15); })
+      #define vaesenclast128(a, b, o) \
+	(o = (__m128i)vaeseq_u8((uint8x16_t)b, (uint8x16_t)a))
+      #define memory_barrier_with_vec(a) __asm__("" : "+w"(a) :: "memory")
+      static inline __attribute__((always_inline)) __m128i
+      fn2(__m128i a)
+      {
+	vpsrldq128(2, a, a);
+	return a;
+      }
+      __m128i fn(__m128i in)
+      {
+	__m128i x;
+	memory_barrier_with_vec(in);
+	x = fn2(in);
+	memory_barrier_with_vec(x);
+	vaesenclast128(in, x, in);
+	memory_barrier_with_vec(in);
+	return in;
+      }
+    ]]
+  )]
+)
+
 AC_CACHE_CHECK([whether compiler supports AArch64/NEON/crypto intrinsics],
       [gcry_cv_cc_aarch64_neon_intrinsics],
       [if test "$mpi_cpu_arch" != "aarch64" ||
@@ -2242,34 +2291,9 @@ AC_CACHE_CHECK([whether compiler supports AArch64/NEON/crypto intrinsics],
 	gcry_cv_cc_aarch64_neon_intrinsics="n/a"
       else
 	gcry_cv_cc_aarch64_neon_intrinsics=no
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-	[[#include <arm_neon.h>
-	  #define __m128i uint64x2_t
-	  #define vpsrldq128(s, a, o) \
-	    ({ uint64x2_t __tmp = { 0, 0 }; \
-		o = (__m128i)vextq_u8((uint8x16_t)a, \
-				      (uint8x16_t)__tmp, (s) & 15); })
-	  #define vaesenclast128(a, b, o) \
-	    (o = (__m128i)vaeseq_u8((uint8x16_t)b, (uint8x16_t)a))
-	  #define memory_barrier_with_vec(a) __asm__("" : "+w"(a) :: "memory")
-	  static inline __attribute__((always_inline)) __m128i
-	  fn2(__m128i a)
-	  {
-	    vpsrldq128(2, a, a);
-	    return a;
-	  }
-	  __m128i fn(__m128i in)
-	  {
-	    __m128i x;
-	    memory_barrier_with_vec(in);
-	    x = fn2(in);
-	    memory_barrier_with_vec(x);
-	    vaesenclast128(in, x, in);
-	    memory_barrier_with_vec(in);
-	    return in;
-	  }
-	  ]])],
-	[gcry_cv_cc_aarch64_neon_intrinsics=yes])
+	AC_COMPILE_IFELSE(
+	  [GCRY_AARCH64_NEON_INTRINSICS_TEST],
+	  [gcry_cv_cc_aarch64_neon_intrinsics=yes])
       fi])
 if test "$gcry_cv_cc_aarch64_neon_intrinsics" = "yes" ; then
     AC_DEFINE(HAVE_COMPATIBLE_CC_AARCH64_NEON_INTRINSICS,1,
@@ -2284,35 +2308,12 @@ if test "$gcry_cv_cc_aarch64_neon_intrinsics" = "no" &&
    test "$try_asm_modules" = "yes" ; then
   AC_CACHE_CHECK([whether compiler supports AArch64/NEON/crypto intrinsics with extra GCC flags],
     [gcry_cv_cc_aarch64_neon_intrinsics_cflags],
-    [gcry_cv_cc_aarch64_neon_intrinsics_cflags=no
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-      [[#include <arm_neon.h>
-	#define __m128i uint64x2_t
-	#define vpsrldq128(s, a, o) \
-	  ({ uint64x2_t __tmp = { 0, 0 }; \
-	      o = (__m128i)vextq_u8((uint8x16_t)a, \
-				    (uint8x16_t)__tmp, (s) & 15); })
-	#define vaesenclast128(a, b, o) \
-	  (o = (__m128i)vaeseq_u8((uint8x16_t)b, (uint8x16_t)a))
-	#define memory_barrier_with_vec(a) __asm__("" : "+w"(a) :: "memory")
-	static inline __attribute__((always_inline)) __m128i
-	fn2(__m128i a)
-	{
-	  vpsrldq128(2, a, a);
-	  return a;
-	}
-	__m128i fn(__m128i in)
-	{
-	  __m128i x;
-	  memory_barrier_with_vec(in);
-	  x = fn2(in);
-	  memory_barrier_with_vec(x);
-	  vaesenclast128(in, x, in);
-	  memory_barrier_with_vec(in);
-	  return in;
-	}
-	]])],
-      [gcry_cv_cc_aarch64_neon_intrinsics_cflags=yes])])
+    [
+      gcry_cv_cc_aarch64_neon_intrinsics_cflags=no
+      AC_COMPILE_IFELSE(
+	[GCRY_AARCH64_NEON_INTRINSICS_TEST],
+	[gcry_cv_cc_aarch64_neon_intrinsics_cflags=yes])
+    ])
   if test "$gcry_cv_cc_aarch64_neon_intrinsics_cflags" = "yes" ; then
     AC_DEFINE(HAVE_COMPATIBLE_CC_AARCH64_NEON_INTRINSICS,1,
 	      [Defined if underlying compiler supports AArch64/NEON/crypto intrinsics])
@@ -2331,6 +2332,27 @@ CFLAGS=$_gcc_cflags_save;
 #
 # Check whether compiler supports PowerPC AltiVec/VSX intrinsics
 #
+m4_define([GCRY_POWERPC_VECTOR_INTRINSICS_TEST],
+  [AC_LANG_SOURCE(
+    [[#include <altivec.h>
+      typedef vector unsigned char block;
+      typedef vector unsigned int vecu32;
+      static inline __attribute__((always_inline)) vecu32
+      vec_sld_u32(vecu32 a, vecu32 b, unsigned int idx)
+      {
+	return vec_sld (a, b, (4 * idx) & 15);
+      }
+      block fn(block in)
+      {
+	block t = vec_perm (in, in, vec_vsx_ld (0, (unsigned char*)0));
+	vecu32 y = vec_vsx_ld (0, (unsigned int*)0);
+	y = vec_sld_u32 (y, y, 3);
+	return vec_cipher_be (t, in) ^ (block)y;
+      }
+    ]]
+  )]
+)
+
 AC_CACHE_CHECK([whether compiler supports PowerPC AltiVec/VSX/crypto intrinsics],
       [gcry_cv_cc_ppc_altivec],
       [if test "$mpi_cpu_arch" != "ppc" ||
@@ -2338,24 +2360,9 @@ AC_CACHE_CHECK([whether compiler supports PowerPC AltiVec/VSX/crypto intrinsics]
 	gcry_cv_cc_ppc_altivec="n/a"
       else
 	gcry_cv_cc_ppc_altivec=no
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-	[[#include <altivec.h>
-	  typedef vector unsigned char block;
-	  typedef vector unsigned int vecu32;
-	  static inline __attribute__((always_inline)) vecu32
-	  vec_sld_u32(vecu32 a, vecu32 b, unsigned int idx)
-	  {
-	    return vec_sld (a, b, (4 * idx) & 15);
-	  }
-	  block fn(block in)
-	  {
-	    block t = vec_perm (in, in, vec_vsx_ld (0, (unsigned char*)0));
-	    vecu32 y = vec_vsx_ld (0, (unsigned int*)0);
-	    y = vec_sld_u32 (y, y, 3);
-	    return vec_cipher_be (t, in) ^ (block)y;
-	  }
-	  ]])],
-	[gcry_cv_cc_ppc_altivec=yes])
+	AC_COMPILE_IFELSE(
+	  [GCRY_POWERPC_VECTOR_INTRINSICS_TEST],
+	  [gcry_cv_cc_ppc_altivec=yes])
       fi])
 if test "$gcry_cv_cc_ppc_altivec" = "yes" ; then
     AC_DEFINE(HAVE_COMPATIBLE_CC_PPC_ALTIVEC,1,
@@ -2370,25 +2377,12 @@ if test "$gcry_cv_cc_ppc_altivec" = "no" &&
    test "$try_asm_modules" = "yes" ; then
   AC_CACHE_CHECK([whether compiler supports PowerPC AltiVec/VSX/crypto intrinsics with extra GCC flags],
     [gcry_cv_cc_ppc_altivec_cflags],
-    [gcry_cv_cc_ppc_altivec_cflags=no
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-      [[#include <altivec.h>
-	typedef vector unsigned char block;
-	typedef vector unsigned int vecu32;
-	static inline __attribute__((always_inline)) vecu32
-	vec_sld_u32(vecu32 a, vecu32 b, unsigned int idx)
-	{
-	  return vec_sld (a, b, (4 * idx) & 15);
-	}
-	block fn(block in)
-	{
-	  block t = vec_perm (in, in, vec_vsx_ld (0, (unsigned char*)0));
-	  vecu32 y = vec_vsx_ld (0, (unsigned int*)0);
-	  y = vec_sld_u32 (y, y, 3);
-	  return vec_cipher_be (t, in) ^ (block)y;
-	}
-	]])],
-      [gcry_cv_cc_ppc_altivec_cflags=yes])])
+    [
+      gcry_cv_cc_ppc_altivec_cflags=no
+      AC_COMPILE_IFELSE(
+	[GCRY_POWERPC_VECTOR_INTRINSICS_TEST],
+	[gcry_cv_cc_ppc_altivec_cflags=yes])
+    ])
   if test "$gcry_cv_cc_ppc_altivec_cflags" = "yes" ; then
     AC_DEFINE(HAVE_COMPATIBLE_CC_PPC_ALTIVEC,1,
 	      [Defined if underlying compiler supports PowerPC AltiVec/VSX/crypto intrinsics])
@@ -2691,8 +2685,73 @@ fi
 
 
 #
+# Check whether compiler supports RISC-V -mstrict-align flag
+#
+_gcc_cflags_save=$CFLAGS
+# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
+CFLAGS="$CFLAGS -mstrict-align"
+
+AC_CACHE_CHECK([whether compiler supports RISC-V -mstrict-align flag],
+      [gcry_cv_cc_riscv_mstrict_align],
+      [if test "$mpi_cpu_arch" != "riscv64" ||
+	  test "$try_asm_modules" != "yes" ; then
+	gcry_cv_cc_riscv_mstrict_align="n/a"
+      else
+	gcry_cv_cc_riscv_mstrict_align=no
+	AC_COMPILE_IFELSE(
+	  [AC_LANG_SOURCE([[void testfn(void) { }]])],
+	  [gcry_cv_cc_riscv_mstrict_align=yes])
+      fi])
+AM_CONDITIONAL(SUPPORT_CC_RISCV_MSTRICT_ALIGN,
+	       test "$gcry_cv_cc_riscv_mstrict_align" = "yes")
+
+# Restore flags.
+CFLAGS=$_gcc_cflags_save;
+
+
+#
 # Check whether compiler supports RISC-V vector intrinsics
 #
+m4_define([GCRY_RISCV_VECTOR_INTRINSICS_TEST],
+  [AC_LANG_SOURCE(
+    [[#if !(defined(__riscv_v_intrinsic) && __riscv_v_intrinsic >= 12000)
+      #error __riscv_v_intrinsic not defined or too old version
+      #endif
+      #include <riscv_vector.h>
+      typedef vuint8m1_t __m128i;
+      #define cast_m128i_to_u64(a) (__riscv_vreinterpret_v_u8m1_u64m1(a))
+      #define cast_u64_to_m128i(a) (__riscv_vreinterpret_v_u64m1_u8m1(a))
+      #define paddq128(a, o) (o = cast_u64_to_m128i( \
+				    __riscv_vadd_vv_u64m1( \
+				      cast_m128i_to_u64(o), \
+				      cast_m128i_to_u64(a), 2)))
+      #define pshufb128(m8, o) (o = __riscv_vrgather_vv_u8m1((o), (m8), 16))
+      #define memory_barrier_with_vec(a) __asm__("" : "+vr"(a) :: "memory")
+      #define clear_vec_reg_v0() \
+	__asm__ volatile("vsetivli zero, 16, e8, m1, ta, ma;\n" \
+			  "vmv.v.x v0, zero;\n" \
+			  ::: "memory", "vtype", "vl", "v0")
+      static inline __attribute__((always_inline)) __m128i
+      fn2(__m128i a)
+      {
+	paddq128(a, a);
+	return a;
+      }
+      __m128i fn(__m128i in)
+      {
+	__m128i x;
+	memory_barrier_with_vec(in);
+	x = fn2(in);
+	memory_barrier_with_vec(x);
+	pshufb128(in, x);
+	memory_barrier_with_vec(in);
+	clear_vec_reg_v0();
+	return in;
+      }
+    ]]
+  )]
+)
+
 AC_CACHE_CHECK([whether compiler supports RISC-V vector intrinsics],
       [gcry_cv_cc_riscv_vector_intrinsics],
       [if test "$mpi_cpu_arch" != "riscv64" ||
@@ -2700,43 +2759,9 @@ AC_CACHE_CHECK([whether compiler supports RISC-V vector intrinsics],
 	gcry_cv_cc_riscv_vector_intrinsics="n/a"
       else
 	gcry_cv_cc_riscv_vector_intrinsics=no
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-	[[#if !(defined(__riscv_v_intrinsic) && __riscv_v_intrinsic >= 12000)
-	  #error __riscv_v_intrinsic not defined or too old version
-	  #endif
-	  #include <riscv_vector.h>
-	  typedef vuint8m1_t __m128i;
-	  #define cast_m128i_to_u64(a) (__riscv_vreinterpret_v_u8m1_u64m1(a))
-	  #define cast_u64_to_m128i(a) (__riscv_vreinterpret_v_u64m1_u8m1(a))
-	  #define paddq128(a, o) (o = cast_u64_to_m128i( \
-					__riscv_vadd_vv_u64m1( \
-					  cast_m128i_to_u64(o), \
-					  cast_m128i_to_u64(a), 2)))
-	  #define pshufb128(m8, o) (o = __riscv_vrgather_vv_u8m1((o), (m8), 16))
-	  #define memory_barrier_with_vec(a) __asm__("" : "+vr"(a) :: "memory")
-	  #define clear_vec_reg_v0() \
-	    __asm__ volatile("vsetivli zero, 16, e8, m1, ta, ma;\n" \
-			     "vmv.v.x v0, zero;\n" \
-			     ::: "memory", "vtype", "vl", "v0")
-	  static inline __attribute__((always_inline)) __m128i
-	  fn2(__m128i a)
-	  {
-	    paddq128(a, a);
-	    return a;
-	  }
-	  __m128i fn(__m128i in)
-	  {
-	    __m128i x;
-	    memory_barrier_with_vec(in);
-	    x = fn2(in);
-	    memory_barrier_with_vec(x);
-	    pshufb128(in, x);
-	    memory_barrier_with_vec(in);
-	    clear_vec_reg_v0();
-	    return in;
-	  }
-	  ]])],
-	[gcry_cv_cc_riscv_vector_intrinsics=yes])
+	AC_COMPILE_IFELSE(
+	  [GCRY_RISCV_VECTOR_INTRINSICS_TEST],
+	  [gcry_cv_cc_riscv_vector_intrinsics=yes])
       fi])
 if test "$gcry_cv_cc_riscv_vector_intrinsics" = "yes" ; then
     AC_DEFINE(HAVE_COMPATIBLE_CC_RISCV_VECTOR_INTRINSICS,1,
@@ -2744,51 +2769,24 @@ if test "$gcry_cv_cc_riscv_vector_intrinsics" = "yes" ; then
 fi
 
 _gcc_cflags_save=$CFLAGS
-CFLAGS="$CFLAGS -O2 -march=rv64imafdcv -mstrict-align"
+# Enable B extension (Zba+Zbb+Zbs) to align with RVA22U64 profile and for
+# better code generation for RISC-V vector implementations.
+MARCH_RVA22U64_WITH_VEC=rv64imafdcv_zba_zbb_zbs
+AC_SUBST([MARCH_RVA22U64_WITH_VEC])
+# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
+CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA22U64_WITH_VEC -mstrict-align"
 
 if test "$gcry_cv_cc_riscv_vector_intrinsics" = "no" &&
    test "$mpi_cpu_arch" = "riscv64" &&
    test "$try_asm_modules" = "yes" ; then
   AC_CACHE_CHECK([whether compiler supports RISC-V vector intrinsics with extra GCC flags],
     [gcry_cv_cc_riscv_vector_intrinsics_cflags],
-    [gcry_cv_cc_riscv_vector_intrinsics_cflags=no
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-      [[#if !(defined(__riscv_v_intrinsic) && __riscv_v_intrinsic >= 12000)
-	#error __riscv_v_intrinsic not defined or too old version
-	#endif
-	#include <riscv_vector.h>
-	typedef vuint8m1_t __m128i;
-	#define cast_m128i_to_u64(a) (__riscv_vreinterpret_v_u8m1_u64m1(a))
-	#define cast_u64_to_m128i(a) (__riscv_vreinterpret_v_u64m1_u8m1(a))
-	#define paddq128(a, o) (o = cast_u64_to_m128i( \
-					__riscv_vadd_vv_u64m1( \
-					  cast_m128i_to_u64(o), \
-					  cast_m128i_to_u64(a), 2)))
-	#define pshufb128(m8, o) (o = __riscv_vrgather_vv_u8m1((o), (m8), 16))
-	#define memory_barrier_with_vec(a) __asm__("" : "+vr"(a) :: "memory")
-	#define clear_vec_reg_v0() \
-	  __asm__ volatile("vsetivli zero, 16, e8, m1, ta, ma;\n" \
-			    "vmv.v.x v0, zero;\n" \
-			    ::: "memory", "vl", "v0")
-	static inline __attribute__((always_inline)) __m128i
-	fn2(__m128i a)
-	{
-	  paddq128(a, a);
-	  return a;
-	}
-	__m128i fn(__m128i in)
-	{
-	  __m128i x;
-	  memory_barrier_with_vec(in);
-	  x = fn2(in);
-	  memory_barrier_with_vec(x);
-	  pshufb128(in, x);
-	  memory_barrier_with_vec(in);
-	  clear_vec_reg_v0();
-	  return in;
-	}
-	]])],
-      [gcry_cv_cc_riscv_vector_intrinsics_cflags=yes])])
+    [
+      gcry_cv_cc_riscv_vector_intrinsics_cflags=no
+      AC_COMPILE_IFELSE(
+	[GCRY_RISCV_VECTOR_INTRINSICS_TEST],
+	[gcry_cv_cc_riscv_vector_intrinsics_cflags=yes])
+    ])
   if test "$gcry_cv_cc_riscv_vector_intrinsics_cflags" = "yes" ; then
     AC_DEFINE(HAVE_COMPATIBLE_CC_RISCV_VECTOR_INTRINSICS,1,
 	      [Defined if underlying compiler supports RISC-V vector intrinsics])
@@ -2802,6 +2800,241 @@ AM_CONDITIONAL(ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS,
 
 # Restore flags.
 CFLAGS=$_gcc_cflags_save;
+
+
+#
+# Check whether compiler supports RISC-V vector cryptography intrinsics
+#
+m4_define([GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
+  [AC_LANG_SOURCE(
+    [[#if !(defined(__riscv_v_intrinsic) && __riscv_v_intrinsic >= 12000)
+      #error __riscv_v_intrinsic not defined or too old version
+      #endif
+      #include <riscv_vector.h>
+      void test_sha2(unsigned int *ptr)
+      {
+	int vl = __riscv_vsetvl_e32m1 (4);
+	vuint32m1_t a = __riscv_vle32_v_u32m1(ptr + 0 * vl, vl);
+	vuint32m1_t b = __riscv_vle32_v_u32m1(ptr + 1 * vl, vl);
+	vuint32m1_t w0 = __riscv_vle32_v_u32m1(ptr + 2 * vl, vl);
+	vuint32m1_t w1 = __riscv_vle32_v_u32m1(ptr + 3 * vl, vl);
+	vuint32m1_t w2 = __riscv_vle32_v_u32m1(ptr + 4 * vl, vl);
+	vuint32m1_t w3 = __riscv_vle32_v_u32m1(ptr + 5 * vl, vl);
+	vuint32m1_t m;
+	vuint32m1_t idx = __riscv_vid_v_u32m1 (vl);
+	vbool32_t merge_mask = __riscv_vmseq_vx_u32m1_b32 (idx, 0, vl);
+	a = __riscv_vsha2cl_vv_u32m1(a, b, w0, vl);
+	b = __riscv_vsha2ch_vv_u32m1(a, b, w0, vl);
+	m = __riscv_vmerge_vvm_u32m1(w2, w1, merge_mask, vl);
+	w0 = __riscv_vsha2ms_vv_u32m1(w0, m, w3, vl);
+	__riscv_vse32_v_u32m1(ptr + 0 * vl, a, vl);
+	__riscv_vse32_v_u32m1(ptr + 1 * vl, b, vl);
+	__riscv_vse32_v_u32m1(ptr + 2 * vl, w0, vl);
+	__riscv_vse32_v_u32m1(ptr + 3 * vl, w1, vl);
+	__riscv_vse32_v_u32m1(ptr + 4 * vl, w2, vl);
+	__riscv_vse32_v_u32m1(ptr + 5 * vl, w3, vl);
+      }
+      void test_aes_key(unsigned int *ptr)
+      {
+	int vl = __riscv_vsetvl_e32m1 (4);
+	vuint32m1_t a = __riscv_vle32_v_u32m1(ptr + 0 * vl, vl);
+	vuint32m1_t b = __riscv_vle32_v_u32m1(ptr + 1 * vl, vl);
+	vuint32m1_t c = __riscv_vaeskf1_vi_u32m1(a, 1, vl);
+	vuint32m1_t d = __riscv_vaeskf2_vi_u32m1(a, b, 2, vl);
+	__riscv_vse32_v_u32m1(ptr + 0 * vl, c, vl);
+	__riscv_vse32_v_u32m1(ptr + 1 * vl, d, vl);
+      }
+      void test_aes_crypt(unsigned int *ptr)
+      {
+	int vl = __riscv_vsetvl_e32m1 (4);
+	vuint32m1_t a = __riscv_vle32_v_u32m1(ptr + 0 * vl, vl);
+	vuint32m1_t b = __riscv_vle32_v_u32m1(ptr + 1 * vl, vl);
+	vuint32m1_t c = __riscv_vaesz_vs_u32m1_u32m1(a, b, vl);
+	vuint32m1_t d = __riscv_vaesem_vs_u32m1_u32m1(a, b, vl);
+	vuint32m1_t e = __riscv_vaesef_vs_u32m1_u32m1(a, b, vl);
+	vuint32m1_t f = __riscv_vaesdm_vs_u32m1_u32m1(a, b, vl);
+	vuint32m1_t g = __riscv_vaesdf_vs_u32m1_u32m1(a, b, vl);
+	__riscv_vse32_v_u32m1(ptr + 0 * vl, c, vl);
+	__riscv_vse32_v_u32m1(ptr + 1 * vl, d, vl);
+	__riscv_vse32_v_u32m1(ptr + 2 * vl, e, vl);
+	__riscv_vse32_v_u32m1(ptr + 3 * vl, f, vl);
+	__riscv_vse32_v_u32m1(ptr + 4 * vl, g, vl);
+      }
+      void test_ghash(unsigned int *ptr)
+      {
+	int vl = __riscv_vsetvl_e32m1 (4);
+	vuint32m1_t a = __riscv_vle32_v_u32m1(ptr + 0 * vl, vl);
+	vuint32m1_t b = __riscv_vle32_v_u32m1(ptr + 1 * vl, vl);
+	vuint32m1_t c = __riscv_vle32_v_u32m1(ptr + 2 * vl, vl);
+	vuint32m1_t d = __riscv_vghsh_vv_u32m1(a, b, c, vl);
+	__riscv_vse32_v_u32m1(ptr + 0 * vl, d, vl);
+      }
+      void test_inline_vec_asm(unsigned int *ptr)
+      {
+	int vl = __riscv_vsetvl_e32m1 (4);
+	vuint32m1_t a = __riscv_vle32_v_u32m1(ptr + 0 * vl, vl);
+	vuint32m1_t b = __riscv_vle32_v_u32m1(ptr + 1 * vl, vl);
+	asm (
+	  "vsetvli zero,%1,e32,m1,ta,ma;\n\t"
+	  "vsha2ms.vv %0,%2,%2;\n\t"
+	  : "+vr" (a)
+	  : "r" (vl), "vr" (b)
+	  : "vl", "vtype"
+	);
+	__riscv_vse32_v_u32m1(ptr + 0 * vl, a, vl);
+      }
+    ]]
+  )]
+)
+
+AC_CACHE_CHECK([whether compiler supports RISC-V vector cryptography intrinsics],
+      [gcry_cv_cc_riscv_vector_crypto_intrinsics],
+      [if test "$mpi_cpu_arch" != "riscv64" ||
+	  test "$try_asm_modules" != "yes" ; then
+	gcry_cv_cc_riscv_vector_crypto_intrinsics="n/a"
+      else
+	gcry_cv_cc_riscv_vector_crypto_intrinsics=no
+	AC_COMPILE_IFELSE(
+	  [GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
+	  [gcry_cv_cc_riscv_vector_crypto_intrinsics=yes])
+      fi])
+if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "yes" ; then
+    AC_DEFINE(HAVE_COMPATIBLE_CC_RISCV_VECTOR_CRYPTO_INTRINSICS,1,
+	    [Defined if underlying compiler supports RISC-V vector cryptography intrinsics])
+fi
+
+_gcc_cflags_save=$CFLAGS
+# Enable B extension (Zba+Zbb+Zbs) to align with RVA23U64 profile and for
+# better code generation for RISC-V vector implementations.
+MARCH_RVA23U64_BASE=${MARCH_RVA22U64_WITH_VEC}
+MARCH_RVA23U64_WITH_VEC_CRYPTO=${MARCH_RVA23U64_BASE}_zvbc_zvkg_zvkn_zvks
+AC_SUBST([MARCH_RVA23U64_BASE])
+# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
+CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO -mstrict-align"
+
+if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "no" &&
+   test "$mpi_cpu_arch" = "riscv64" &&
+   test "$try_asm_modules" = "yes" ; then
+  AC_CACHE_CHECK([whether compiler supports RISC-V vector intrinsics with extra GCC flags],
+    [gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags],
+    [gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags=no
+    AC_COMPILE_IFELSE(
+      [GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
+      [gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags=yes])])
+  if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes" ; then
+    AC_DEFINE(HAVE_COMPATIBLE_CC_RISCV_VECTOR_CRYPTO_INTRINSICS,1,
+	      [Defined if underlying compiler supports RISC-V vector cryptography intrinsics])
+    AC_DEFINE(HAVE_COMPATIBLE_CC_RISCV_VECTOR_CRYPTO_INTRINSICS_WITH_CFLAGS,1,
+	      [Defined if underlying compiler supports RISC-V vector cryptography intrinsics with extra GCC flags])
+  fi
+fi
+
+AM_CONDITIONAL(ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS,
+	       test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes")
+
+# Restore flags.
+CFLAGS=$_gcc_cflags_save;
+
+
+#
+# Check whether compiler has working RISC-V vector __riscv_vsha2cl intrinsics
+#
+# LLVM has broken __riscv_vsha2cl_* intrinsics where they emit 'vsha2ch.vv'
+# instructions instead of expected 'vsha2cl.vv':
+#  https://github.com/llvm/llvm-project/issues/151814
+#
+if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "yes" ||
+   test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes"; then
+
+  # Setup flags for test if needed.
+  _gcc_cflags_save=$CFLAGS
+  if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes"; then
+    CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO -mstrict-align"
+  fi
+
+  # Disable LTO optimization for following check to generate
+  # RISC-V instructions in compiler output
+  CFLAGS="$CFLAGS -fno-lto"
+
+  AC_CACHE_CHECK([whether compiler has working RISC-V __riscv_vsha2cl intrinsics],
+    [gcry_cv_riscv_vsha2cl_intrinsics_work],
+    [gcry_cv_riscv_vsha2cl_intrinsics_work=no
+     cat > conftest.c <<EOF
+#include <riscv_vector.h>
+vuint32m1_t test_fn(vuint32m1_t a, vuint32m1_t b, vuint32m1_t c, int vl)
+{
+  return __riscv_vsha2cl_vv_u32m1(a, b, c, vl);
+}
+EOF
+
+    if $CC $CFLAGS -S conftest.c -o conftest.s >&5 2>&5; then
+      if grep 'vsha2cl' conftest.s >/dev/null 2>&1; then
+        gcry_cv_riscv_vsha2cl_intrinsics_work=yes
+      fi
+    fi
+    rm -f conftest.*
+  ])
+
+  if test "$gcry_cv_riscv_vsha2cl_intrinsics_work" = "no"; then
+    AC_DEFINE([HAVE_BROKEN_VSHA2CL_INTRINSIC], [1],
+              [Define to 1 if __riscv_vsha2cl intrinsics are broken])
+  fi
+
+  # Restore flags.
+  CFLAGS=$_gcc_cflags_save;
+fi
+
+#
+# Check whether compiler has working RISC-V vector __riscv_vaes*_vs intrinsics
+#
+# Some GCC versions generate a 'vsetvli' instruction with an incorrect 'm1'
+# LMUL instead of the expected 'mX' for the __riscv_vaes*_vs_u32m1_u32mX
+# intrinsics:
+#  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=121485
+#
+if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "yes" ||
+   test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes"; then
+
+  # Setup flags for test.
+  _gcc_cflags_save=$CFLAGS
+  if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes"; then
+    CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO -mstrict-align"
+  else
+    CFLAGS="$CFLAGS -O2"
+  fi
+
+  # Disable LTO optimization for following check to generate
+  # RISC-V instructions in compiler output
+  CFLAGS="$CFLAGS -fno-lto"
+
+  AC_CACHE_CHECK([whether compiler has working RISC-V __riscv_vaes*_vs intrinsics],
+    [gcry_cv_riscv_vaes_vs_intrinsics_work],
+    [gcry_cv_riscv_vaes_vs_intrinsics_work=no
+     cat > conftest.c <<EOF
+#include <riscv_vector.h>
+vuint32m4_t test_fn(vuint32m4_t a, vuint32m1_t b, int vl)
+{
+  /* This intrinsic should result in a 'vsetvli' with m4 */
+  return __riscv_vaesem_vs_u32m1_u32m4(a, b, vl);
+}
+EOF
+
+    if $CC $CFLAGS -S conftest.c -o conftest.s >&5 2>&5; then
+      if grep -E 'vsetvli.*,[[[:space:]]]*m4[[[:space:]]]*,' conftest.s >/dev/null 2>&1; then
+	gcry_cv_riscv_vaes_vs_intrinsics_work=yes
+      fi
+    fi
+    rm -f conftest.*
+  ])
+
+  if test "$gcry_cv_riscv_vaes_vs_intrinsics_work" = "no"; then
+    AC_DEFINE([HAVE_BROKEN_VAES_VS_INTRINSIC], [1],
+	      [Define to 1 if __riscv_vaes*_vs intrinsics are broken])
+  fi
+
+  # Restore flags.
+  CFLAGS=$_gcc_cflags_save;
+fi
 
 
 #######################################
@@ -3230,6 +3463,7 @@ if test "$found" = "1" ; then
          # Build with the VAES/AVX2 implementation
          GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS rijndael-vaes.lo"
          GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS rijndael-vaes-avx2-amd64.lo"
+         GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS rijndael-vaes-avx512-amd64.lo"
       ;;
       arm*-*-*)
          # Build with the assembly implementation
@@ -3275,6 +3509,9 @@ if test "$found" = "1" ; then
       riscv64-*-*)
          # Build with the vector permute SIMD128 implementation
          GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS rijndael-vp-riscv.lo"
+
+         # Build with the RISC-V vector cryptography implementation
+         GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS rijndael-riscv-zvkned.lo"
       ;;
       s390x-*-*)
          # Big-Endian.
@@ -3572,6 +3809,14 @@ if test "$found" = "1" ; then
    AC_DEFINE(USE_KYBER, 1, [Defined if this module should be included])
 fi
 
+LIST_MEMBER(dilithium, $enabled_pubkey_ciphers)
+AM_CONDITIONAL(USE_DILITHIUM, [test "$found" = "1"])
+if test "$found" = "1" ; then
+   GCRYPT_PUBKEY_CIPHERS="$GCRYPT_PUBKEY_CIPHERS \
+                          dilithium.lo pubkey-dilithium.lo"
+   AC_DEFINE(USE_DILITHIUM, 1, [Defined if this module should be included])
+fi
+
 LIST_MEMBER(crc, $enabled_digests)
 if test "$found" = "1" ; then
    GCRYPT_DIGESTS="$GCRYPT_DIGESTS crc.lo"
@@ -3595,6 +3840,10 @@ if test "$found" = "1" ; then
       ;;
       powerpc-*-*)
          GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS crc-ppc.lo"
+      ;;
+      riscv64-*-*)
+         # Build with the RISC-V vector implementation
+         GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS crc-riscv-zbb-zbc.lo"
       ;;
    esac
 fi
@@ -3672,6 +3921,11 @@ if test "$found" = "1" ; then
          # Big-Endian.
          # Build with the crypto extension implementation
          GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sha256-ppc.lo"
+      ;;
+      riscv64-*-*)
+         # Build with the RISC-V vector cryptography implementation
+         GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sha256-riscv-zvknha-zvkb.lo"
+      ;;
    esac
 
    case "$mpi_cpu_arch" in
@@ -3725,6 +3979,11 @@ if test "$found" = "1" ; then
          # Big-Endian.
          # Build with the crypto extension implementation
          GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sha512-ppc.lo"
+      ;;
+      riscv64-*-*)
+         # Build with the RISC-V vector cryptography implementation
+         GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sha512-riscv-zvknhb-zvkb.lo"
+      ;;
    esac
 fi
 
@@ -3849,6 +4108,7 @@ case "${host}" in
   ;;
   riscv64-*-*)
     GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS cipher-gcm-riscv-zbb-zbc.lo"
+    GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS cipher-gcm-riscv-zvkg.lo"
   ;;
 esac
 

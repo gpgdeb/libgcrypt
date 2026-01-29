@@ -193,14 +193,16 @@ am__depfiles_remade = ./$(DEPDIR)/arcfour-amd64.Plo \
 	./$(DEPDIR)/cipher-gcm-intel-pclmul.Plo \
 	./$(DEPDIR)/cipher-gcm-ppc.Plo \
 	./$(DEPDIR)/cipher-gcm-riscv-zbb-zbc.Plo \
+	./$(DEPDIR)/cipher-gcm-riscv-zvkg.Plo \
 	./$(DEPDIR)/cipher-gcm-siv.Plo ./$(DEPDIR)/cipher-gcm.Plo \
 	./$(DEPDIR)/cipher-ocb.Plo ./$(DEPDIR)/cipher-ofb.Plo \
 	./$(DEPDIR)/cipher-poly1305.Plo ./$(DEPDIR)/cipher-siv.Plo \
 	./$(DEPDIR)/cipher-xts.Plo ./$(DEPDIR)/cipher.Plo \
 	./$(DEPDIR)/crc-armv8-aarch64-ce.Plo \
 	./$(DEPDIR)/crc-armv8-ce.Plo ./$(DEPDIR)/crc-intel-pclmul.Plo \
-	./$(DEPDIR)/crc-ppc.Plo ./$(DEPDIR)/crc.Plo \
-	./$(DEPDIR)/des-amd64.Plo ./$(DEPDIR)/des.Plo \
+	./$(DEPDIR)/crc-ppc.Plo ./$(DEPDIR)/crc-riscv-zbb-zbc.Plo \
+	./$(DEPDIR)/crc.Plo ./$(DEPDIR)/des-amd64.Plo \
+	./$(DEPDIR)/des.Plo ./$(DEPDIR)/dilithium.Plo \
 	./$(DEPDIR)/dsa-common.Plo ./$(DEPDIR)/dsa.Plo \
 	./$(DEPDIR)/ecc-curves.Plo ./$(DEPDIR)/ecc-ecdh.Plo \
 	./$(DEPDIR)/ecc-ecdsa.Plo ./$(DEPDIR)/ecc-eddsa.Plo \
@@ -219,9 +221,9 @@ am__depfiles_remade = ./$(DEPDIR)/arcfour-amd64.Plo \
 	./$(DEPDIR)/md4.Plo ./$(DEPDIR)/md5.Plo \
 	./$(DEPDIR)/poly1305-amd64-avx512.Plo \
 	./$(DEPDIR)/poly1305-s390x.Plo ./$(DEPDIR)/poly1305.Plo \
-	./$(DEPDIR)/primegen.Plo ./$(DEPDIR)/pubkey-util.Plo \
-	./$(DEPDIR)/pubkey.Plo ./$(DEPDIR)/rfc2268.Plo \
-	./$(DEPDIR)/rijndael-aarch64.Plo \
+	./$(DEPDIR)/primegen.Plo ./$(DEPDIR)/pubkey-dilithium.Plo \
+	./$(DEPDIR)/pubkey-util.Plo ./$(DEPDIR)/pubkey.Plo \
+	./$(DEPDIR)/rfc2268.Plo ./$(DEPDIR)/rijndael-aarch64.Plo \
 	./$(DEPDIR)/rijndael-aesni.Plo ./$(DEPDIR)/rijndael-amd64.Plo \
 	./$(DEPDIR)/rijndael-arm.Plo \
 	./$(DEPDIR)/rijndael-armv8-aarch32-ce.Plo \
@@ -229,11 +231,14 @@ am__depfiles_remade = ./$(DEPDIR)/arcfour-amd64.Plo \
 	./$(DEPDIR)/rijndael-armv8-ce.Plo \
 	./$(DEPDIR)/rijndael-p10le.Plo \
 	./$(DEPDIR)/rijndael-padlock.Plo ./$(DEPDIR)/rijndael-ppc.Plo \
-	./$(DEPDIR)/rijndael-ppc9le.Plo ./$(DEPDIR)/rijndael-s390x.Plo \
+	./$(DEPDIR)/rijndael-ppc9le.Plo \
+	./$(DEPDIR)/rijndael-riscv-zvkned.Plo \
+	./$(DEPDIR)/rijndael-s390x.Plo \
 	./$(DEPDIR)/rijndael-ssse3-amd64-asm.Plo \
 	./$(DEPDIR)/rijndael-ssse3-amd64.Plo \
 	./$(DEPDIR)/rijndael-vaes-avx2-amd64.Plo \
 	./$(DEPDIR)/rijndael-vaes-avx2-i386.Plo \
+	./$(DEPDIR)/rijndael-vaes-avx512-amd64.Plo \
 	./$(DEPDIR)/rijndael-vaes-i386.Plo \
 	./$(DEPDIR)/rijndael-vaes.Plo \
 	./$(DEPDIR)/rijndael-vp-aarch64.Plo \
@@ -259,12 +264,14 @@ am__depfiles_remade = ./$(DEPDIR)/arcfour-amd64.Plo \
 	./$(DEPDIR)/sha256-avx-amd64.Plo \
 	./$(DEPDIR)/sha256-avx2-bmi2-amd64.Plo \
 	./$(DEPDIR)/sha256-intel-shaext.Plo ./$(DEPDIR)/sha256-ppc.Plo \
+	./$(DEPDIR)/sha256-riscv-zvknha-zvkb.Plo \
 	./$(DEPDIR)/sha256-ssse3-amd64.Plo ./$(DEPDIR)/sha256.Plo \
 	./$(DEPDIR)/sha512-arm.Plo ./$(DEPDIR)/sha512-armv7-neon.Plo \
 	./$(DEPDIR)/sha512-armv8-aarch64-ce.Plo \
 	./$(DEPDIR)/sha512-avx-amd64.Plo \
 	./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo \
 	./$(DEPDIR)/sha512-avx512-amd64.Plo ./$(DEPDIR)/sha512-ppc.Plo \
+	./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo \
 	./$(DEPDIR)/sha512-ssse3-amd64.Plo \
 	./$(DEPDIR)/sha512-ssse3-i386.Plo ./$(DEPDIR)/sha512.Plo \
 	./$(DEPDIR)/sm3-aarch64.Plo \
@@ -387,6 +394,7 @@ ETAGS = @ETAGS@
 EXEEXT = @EXEEXT@
 EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 FGREP = @FGREP@
+FILECMD = @FILECMD@
 GCRYPT_CIPHERS = @GCRYPT_CIPHERS@
 GCRYPT_DIGESTS = @GCRYPT_DIGESTS@
 GCRYPT_HWF_MODULES = @GCRYPT_HWF_MODULES@
@@ -425,9 +433,12 @@ LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
+MARCH_RVA22U64_WITH_VEC = @MARCH_RVA22U64_WITH_VEC@
+MARCH_RVA23U64_BASE = @MARCH_RVA23U64_BASE@
 MKDIR_P = @MKDIR_P@
 MPI_SFLAGS = @MPI_SFLAGS@
 NM = @NM@
@@ -519,7 +530,9 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I../src -I$(top_srcdir)/src -I../mpi -I$(top_srcdir)/mpi
 AM_CFLAGS = $(GPG_ERROR_CFLAGS)
 AM_CCASFLAGS = $(NOEXECSTACK_FLAGS)
-EXTRA_DIST = gost-s-box.c kyber-common.c kyber-kdep.c
+EXTRA_DIST = gost-s-box.c kyber-common.c kyber-kdep.c \
+             dilithium-common.c dilithium-dep.c
+
 CLEANFILES = gost-s-box$(EXEEXT_FOR_BUILD)
 DISTCLEANFILES = gost-sb.h
 noinst_LTLIBRARIES = libcipher.la
@@ -581,11 +594,13 @@ EXTRA_libcipher_la_SOURCES = \
 	cipher-gcm-ppc.c cipher-gcm-intel-pclmul.c \
 	cipher-gcm-aarch64-simd.c cipher-gcm-armv7-neon.S \
 	cipher-gcm-armv8-aarch32-ce.S cipher-gcm-armv8-aarch64-ce.S \
-	cipher-gcm-riscv-zbb-zbc.c \
+	cipher-gcm-riscv-zbb-zbc.c cipher-gcm-riscv-zvkg.c \
 	crc.c crc-intel-pclmul.c crc-armv8-ce.c \
 	crc-armv8-aarch64-ce.S \
 	crc-ppc.c \
+	crc-riscv-zbb-zbc.c \
 	des.c des-amd64.S \
+	dilithium.c dilithium.h pubkey-dilithium.c \
 	dsa.c \
 	elgamal.c \
 	ecc.c ecc-curves.c ecc-misc.c ecc-common.h \
@@ -603,12 +618,14 @@ EXTRA_libcipher_la_SOURCES = \
 	rijndael-amd64.S rijndael-arm.S                    \
 	rijndael-ssse3-amd64.c rijndael-ssse3-amd64-asm.S  \
 	rijndael-vaes.c rijndael-vaes-avx2-amd64.S         \
+	rijndael-vaes-avx512-amd64.S                       \
 	rijndael-vaes-i386.c rijndael-vaes-avx2-i386.S     \
 	rijndael-armv8-ce.c rijndael-armv8-aarch32-ce.S    \
 	rijndael-armv8-aarch64-ce.S rijndael-aarch64.S     \
 	rijndael-ppc.c rijndael-ppc9le.c                   \
 	rijndael-p10le.c rijndael-gcm-p10le.s              \
 	rijndael-ppc-common.h rijndael-ppc-functions.h     \
+	rijndael-riscv-zvkned.c                            \
 	rijndael-s390x.c                                   \
 	rijndael-vp-aarch64.c rijndael-vp-riscv.c          \
 	rijndael-vp-simd128.h                              \
@@ -630,11 +647,11 @@ EXTRA_libcipher_la_SOURCES = \
 	sha256.c sha256-ssse3-amd64.S sha256-avx-amd64.S \
 	sha256-avx2-bmi2-amd64.S \
 	sha256-armv8-aarch32-ce.S sha256-armv8-aarch64-ce.S \
-	sha256-intel-shaext.c sha256-ppc.c \
+	sha256-intel-shaext.c sha256-ppc.c sha256-riscv-zvknha-zvkb.c \
 	sha512.c sha512-ssse3-amd64.S sha512-avx-amd64.S \
 	sha512-avx2-bmi2-amd64.S sha512-avx512-amd64.S \
 	sha512-armv7-neon.S sha512-armv8-aarch64-ce.S sha512-arm.S \
-	sha512-ppc.c sha512-ssse3-i386.c \
+	sha512-ppc.c sha512-riscv-zvknhb-zvkb.c sha512-ssse3-i386.c \
 	sm3.c sm3-avx-bmi2-amd64.S sm3-aarch64.S sm3-armv8-aarch64-ce.S \
 	keccak.c keccak_permute_32.h keccak_permute_64.h \
 	keccak-armv7-neon.S keccak-amd64-avx512.S \
@@ -674,10 +691,22 @@ EXTRA_libcipher_la_SOURCES = \
 @ENABLE_AARCH64_NEON_INTRINSICS_EXTRA_CFLAGS_TRUE@aarch64_simd_cflags = -O2 -march=armv8-a+simd
 @ENABLE_X86_AVX512_INTRINSICS_EXTRA_CFLAGS_FALSE@avx512f_cflags = 
 @ENABLE_X86_AVX512_INTRINSICS_EXTRA_CFLAGS_TRUE@avx512f_cflags = -mavx512f
-@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_FALSE@riscv_vector_cflags = 
+@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_cflags = 
+@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_cflags = -O2 -mstrict-align
 
 # Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
-@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_cflags = -O2 -march=rv64imafdcv -mstrict-align
+@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_cflags = -O2 -march=@MARCH_RVA22U64_WITH_VEC@ -mstrict-align
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_crypto_aes_cflags = 
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_crypto_aes_cflags = -O2 -mstrict-align
+
+# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_aes_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvkned -mstrict-align
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_crypto_sha_cflags = 
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_crypto_sha_cflags = -O2 -mstrict-align
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_sha_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvknha_zvknhb_zvkb -mstrict-align
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_crypto_gcm_cflags = 
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_crypto_gcm_cflags = -O2 -mstrict-align
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_gcm_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvkg -mstrict-align
 all: all-am
 
 .SUFFIXES:
@@ -784,6 +813,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-gcm-intel-pclmul.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-gcm-ppc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-gcm-riscv-zbb-zbc.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-gcm-riscv-zvkg.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-gcm-siv.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-gcm.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cipher-ocb.Plo@am__quote@ # am--include-marker
@@ -796,9 +826,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc-armv8-ce.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc-intel-pclmul.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc-ppc.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc-riscv-zbb-zbc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/des-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/des.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dilithium.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsa-common.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsa.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ecc-curves.Plo@am__quote@ # am--include-marker
@@ -834,6 +866,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poly1305-s390x.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poly1305.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/primegen.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pubkey-dilithium.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pubkey-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pubkey.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rfc2268.Plo@am__quote@ # am--include-marker
@@ -848,11 +881,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-padlock.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-ppc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-ppc9le.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-riscv-zvkned.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-s390x.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-ssse3-amd64-asm.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-ssse3-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-vaes-avx2-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-vaes-avx2-i386.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-vaes-avx512-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-vaes-i386.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-vaes.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rijndael-vp-aarch64.Plo@am__quote@ # am--include-marker
@@ -886,6 +921,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256-avx2-bmi2-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256-intel-shaext.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256-ppc.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256-riscv-zvknha-zvkb.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256-ssse3-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-arm.Plo@am__quote@ # am--include-marker
@@ -895,6 +931,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-avx512-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-ppc.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-ssse3-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-ssse3-i386.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512.Plo@am__quote@ # am--include-marker
@@ -1163,6 +1200,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/cipher-gcm-intel-pclmul.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm-ppc.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm-riscv-zbb-zbc.Plo
+	-rm -f ./$(DEPDIR)/cipher-gcm-riscv-zvkg.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm-siv.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm.Plo
 	-rm -f ./$(DEPDIR)/cipher-ocb.Plo
@@ -1175,9 +1213,11 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/crc-armv8-ce.Plo
 	-rm -f ./$(DEPDIR)/crc-intel-pclmul.Plo
 	-rm -f ./$(DEPDIR)/crc-ppc.Plo
+	-rm -f ./$(DEPDIR)/crc-riscv-zbb-zbc.Plo
 	-rm -f ./$(DEPDIR)/crc.Plo
 	-rm -f ./$(DEPDIR)/des-amd64.Plo
 	-rm -f ./$(DEPDIR)/des.Plo
+	-rm -f ./$(DEPDIR)/dilithium.Plo
 	-rm -f ./$(DEPDIR)/dsa-common.Plo
 	-rm -f ./$(DEPDIR)/dsa.Plo
 	-rm -f ./$(DEPDIR)/ecc-curves.Plo
@@ -1213,6 +1253,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/poly1305-s390x.Plo
 	-rm -f ./$(DEPDIR)/poly1305.Plo
 	-rm -f ./$(DEPDIR)/primegen.Plo
+	-rm -f ./$(DEPDIR)/pubkey-dilithium.Plo
 	-rm -f ./$(DEPDIR)/pubkey-util.Plo
 	-rm -f ./$(DEPDIR)/pubkey.Plo
 	-rm -f ./$(DEPDIR)/rfc2268.Plo
@@ -1227,11 +1268,13 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/rijndael-padlock.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ppc.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ppc9le.Plo
+	-rm -f ./$(DEPDIR)/rijndael-riscv-zvkned.Plo
 	-rm -f ./$(DEPDIR)/rijndael-s390x.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ssse3-amd64-asm.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ssse3-amd64.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes-avx2-amd64.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes-avx2-i386.Plo
+	-rm -f ./$(DEPDIR)/rijndael-vaes-avx512-amd64.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes-i386.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vp-aarch64.Plo
@@ -1265,6 +1308,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/sha256-avx2-bmi2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha256-intel-shaext.Plo
 	-rm -f ./$(DEPDIR)/sha256-ppc.Plo
+	-rm -f ./$(DEPDIR)/sha256-riscv-zvknha-zvkb.Plo
 	-rm -f ./$(DEPDIR)/sha256-ssse3-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha256.Plo
 	-rm -f ./$(DEPDIR)/sha512-arm.Plo
@@ -1274,6 +1318,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-avx512-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-ppc.Plo
+	-rm -f ./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo
 	-rm -f ./$(DEPDIR)/sha512-ssse3-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-ssse3-i386.Plo
 	-rm -f ./$(DEPDIR)/sha512.Plo
@@ -1397,6 +1442,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/cipher-gcm-intel-pclmul.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm-ppc.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm-riscv-zbb-zbc.Plo
+	-rm -f ./$(DEPDIR)/cipher-gcm-riscv-zvkg.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm-siv.Plo
 	-rm -f ./$(DEPDIR)/cipher-gcm.Plo
 	-rm -f ./$(DEPDIR)/cipher-ocb.Plo
@@ -1409,9 +1455,11 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/crc-armv8-ce.Plo
 	-rm -f ./$(DEPDIR)/crc-intel-pclmul.Plo
 	-rm -f ./$(DEPDIR)/crc-ppc.Plo
+	-rm -f ./$(DEPDIR)/crc-riscv-zbb-zbc.Plo
 	-rm -f ./$(DEPDIR)/crc.Plo
 	-rm -f ./$(DEPDIR)/des-amd64.Plo
 	-rm -f ./$(DEPDIR)/des.Plo
+	-rm -f ./$(DEPDIR)/dilithium.Plo
 	-rm -f ./$(DEPDIR)/dsa-common.Plo
 	-rm -f ./$(DEPDIR)/dsa.Plo
 	-rm -f ./$(DEPDIR)/ecc-curves.Plo
@@ -1447,6 +1495,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/poly1305-s390x.Plo
 	-rm -f ./$(DEPDIR)/poly1305.Plo
 	-rm -f ./$(DEPDIR)/primegen.Plo
+	-rm -f ./$(DEPDIR)/pubkey-dilithium.Plo
 	-rm -f ./$(DEPDIR)/pubkey-util.Plo
 	-rm -f ./$(DEPDIR)/pubkey.Plo
 	-rm -f ./$(DEPDIR)/rfc2268.Plo
@@ -1461,11 +1510,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/rijndael-padlock.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ppc.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ppc9le.Plo
+	-rm -f ./$(DEPDIR)/rijndael-riscv-zvkned.Plo
 	-rm -f ./$(DEPDIR)/rijndael-s390x.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ssse3-amd64-asm.Plo
 	-rm -f ./$(DEPDIR)/rijndael-ssse3-amd64.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes-avx2-amd64.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes-avx2-i386.Plo
+	-rm -f ./$(DEPDIR)/rijndael-vaes-avx512-amd64.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes-i386.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vaes.Plo
 	-rm -f ./$(DEPDIR)/rijndael-vp-aarch64.Plo
@@ -1499,6 +1550,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/sha256-avx2-bmi2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha256-intel-shaext.Plo
 	-rm -f ./$(DEPDIR)/sha256-ppc.Plo
+	-rm -f ./$(DEPDIR)/sha256-riscv-zvknha-zvkb.Plo
 	-rm -f ./$(DEPDIR)/sha256-ssse3-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha256.Plo
 	-rm -f ./$(DEPDIR)/sha512-arm.Plo
@@ -1508,6 +1560,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-avx512-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-ppc.Plo
+	-rm -f ./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo
 	-rm -f ./$(DEPDIR)/sha512-ssse3-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-ssse3-i386.Plo
 	-rm -f ./$(DEPDIR)/sha512.Plo
@@ -1729,6 +1782,30 @@ rijndael-vp-riscv.o: $(srcdir)/rijndael-vp-riscv.c Makefile
 
 rijndael-vp-riscv.lo: $(srcdir)/rijndael-vp-riscv.c Makefile
 	`echo $(LTCOMPILE) $(riscv_vector_cflags) -c $< | $(instrumentation_munging) `
+
+cipher-gcm-riscv-zvkg.o: $(srcdir)/cipher-gcm-riscv-zvkg.c Makefile
+	`echo $(COMPILE) $(riscv_vector_crypto_gcm_cflags) -c $< | $(instrumentation_munging) `
+
+cipher-gcm-riscv-zvkg.lo: $(srcdir)/cipher-gcm-riscv-zvkg.c Makefile
+	`echo $(LTCOMPILE) $(riscv_vector_crypto_gcm_cflags) -c $< | $(instrumentation_munging) `
+
+rijndael-riscv-zvkned.o: $(srcdir)/rijndael-riscv-zvkned.c Makefile
+	`echo $(COMPILE) $(riscv_vector_crypto_aes_cflags) -c $< | $(instrumentation_munging) `
+
+rijndael-riscv-zvkned.lo: $(srcdir)/rijndael-riscv-zvkned.c Makefile
+	`echo $(LTCOMPILE) $(riscv_vector_crypto_aes_cflags) -c $< | $(instrumentation_munging) `
+
+sha256-riscv-zvknha-zvkb.o: $(srcdir)/sha256-riscv-zvknha-zvkb.c Makefile
+	`echo $(COMPILE) $(riscv_vector_crypto_sha_cflags) -c $< | $(instrumentation_munging) `
+
+sha256-riscv-zvknha-zvkb.lo: $(srcdir)/sha256-riscv-zvknha-zvkb.c Makefile
+	`echo $(LTCOMPILE) $(riscv_vector_crypto_sha_cflags) -c $< | $(instrumentation_munging) `
+
+sha512-riscv-zvknhb-zvkb.o: $(srcdir)/sha512-riscv-zvknhb-zvkb.c Makefile
+	`echo $(COMPILE) $(riscv_vector_crypto_sha_cflags) -c $< | $(instrumentation_munging) `
+
+sha512-riscv-zvknhb-zvkb.lo: $(srcdir)/sha512-riscv-zvknhb-zvkb.c Makefile
+	`echo $(LTCOMPILE) $(riscv_vector_crypto_sha_cflags) -c $< | $(instrumentation_munging) `
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

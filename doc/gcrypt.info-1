@@ -1,7 +1,8 @@
 This is gcrypt.info, produced by makeinfo version 6.8 from gcrypt.texi.
 
-This manual is for Libgcrypt version 1.11.2 and was last updated 12 May
-2025.  Libgcrypt is GNU's library of cryptographic building blocks.
+This manual is for Libgcrypt version 1.12.0 and was last updated 24
+September 2025.  Libgcrypt is GNU's library of cryptographic building
+blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
 Free Software Foundation, Inc.
@@ -24,8 +25,9 @@ File: gcrypt.info,  Node: Top,  Next: Introduction,  Up: (dir)
 The Libgcrypt Library
 *********************
 
-This manual is for Libgcrypt version 1.11.2 and was last updated 12 May
-2025.  Libgcrypt is GNU's library of cryptographic building blocks.
+This manual is for Libgcrypt version 1.12.0 and was last updated 24
+September 2025.  Libgcrypt is GNU's library of cryptographic building
+blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
 Free Software Foundation, Inc.
@@ -492,7 +494,6 @@ are
 'intel-rdrand'
 'intel-avx'
 'intel-avx2'
-'intel-fast-vpgather'
 'intel-rdtsc'
 'intel-shaext'
 'intel-vaes-vpclmul'
@@ -522,6 +523,16 @@ are
 's390x-msa-8'
 's390x-msa-9'
 's390x-vx'
+'riscv-imafdc'
+'riscv-b'
+'riscv-v'
+'riscv-zbb'
+'riscv-zbc'
+'riscv-zvkb'
+'riscv-zvkg'
+'riscv-zvkned'
+'riscv-zvknha'
+'riscv-zvknhb'
 
    To disable a feature for all processes using Libgcrypt 1.6 or newer,
 create the file '/etc/gcrypt/hwf.deny' and put each feature not to be
@@ -6661,7 +6672,7 @@ GNU Lesser General Public License
                       Version 2.1, February 1999
 
      Copyright (C) 1991, 1999 Free Software Foundation, Inc.
-     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+     <https://fsf.org/>
 
      Everyone is permitted to copy and distribute verbatim copies
      of this license document, but changing it is not allowed.
@@ -7106,12 +7117,12 @@ TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   15. BECAUSE THE LIBRARY IS LICENSED FREE OF CHARGE, THERE IS NO
      WARRANTY FOR THE LIBRARY, TO THE EXTENT PERMITTED BY APPLICABLE
-     LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS
+     LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS
      AND/OR OTHER PARTIES PROVIDE THE LIBRARY "AS IS" WITHOUT WARRANTY
      OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT
      LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-     FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND
-     PERFORMANCE OF THE LIBRARY IS WITH YOU. SHOULD THE LIBRARY PROVE
+     FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND
+     PERFORMANCE OF THE LIBRARY IS WITH YOU.  SHOULD THE LIBRARY PROVE
      DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR
      OR CORRECTION.
 
@@ -7158,9 +7169,7 @@ found.
      Lesser General Public License for more details.
 
      You should have received a copy of the GNU Lesser General Public
-     License along with this library; if not, write to the Free Software
-     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
-     USA.
+     License along with this library; if not, see <https://www.gnu.org/licenses/>.
 
    Also add information on how to contact you by electronic and paper
 mail.
@@ -7172,8 +7181,8 @@ if necessary.  Here is a sample; alter the names:
      Yoyodyne, Inc., hereby disclaims all copyright interest in the library
      `Frob' (a library for tweaking knobs) written by James Random Hacker.
 
-     SIGNATURE OF TY COON, 1 April 1990
-     Ty Coon, President of Vice
+     SIGNATURE OF MOE GHOUL, 1 April 1990
+     Moe Ghoul, President of Vice
 
    That's all there is to it!
 
@@ -7186,7 +7195,7 @@ GNU General Public License
                          Version 2, June 1991
 
      Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-     51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+     <https://fsf.org/>
 
      Everyone is permitted to copy and distribute verbatim copies
      of this license document, but changing it is not allowed.
@@ -7453,12 +7462,12 @@ TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO
      WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE
-     LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS
+     LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS
      AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
      OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT
      LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-     FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND
-     PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE
+     FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND
+     PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE PROGRAM PROVE
      DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR
      OR CORRECTION.
 
@@ -7502,8 +7511,7 @@ convey the exclusion of warranty; and each file should have at least the
      GNU General Public License for more details.
 
      You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+     along with this program; if not, see <https://www.gnu.org/licenses/>.
 
    Also add information on how to contact you by electronic and paper
 mail.
@@ -7529,8 +7537,8 @@ if necessary.  Here is a sample; alter the names:
      Yoyodyne, Inc., hereby disclaims all copyright interest in the program
      `Gnomovision' (which makes passes at compilers) written by James Hacker.
 
-     SIGNATURE OF TY COON, 1 April 1989
-     Ty Coon, President of Vice
+     SIGNATURE OF MOE GHOUL, 1 April 1989
+     Moe Ghoul, President of Vice
 
    This General Public License does not permit incorporating your
 program into proprietary programs.  If your program is a subroutine

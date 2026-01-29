@@ -1,5 +1,88 @@
-Noteworthy changes in version 1.11.2 (2025-08-04)  [C26/A6/R0]
+Noteworthy changes in version 1.12.0 (2026-01-29)  [C27/A7/R0]
 -------------------------------------------------
+
+ * New and extended interfaces:
+
+   - Allow access to the FIPS service indicator via the new
+     GCRYCTL_FIPS_SERVICE_INDICATOR control code.
+     [T7338,rCd0db6a5abf,rCf51f4e9893]
+
+   - Add GCRYCTL_FIPS_REJECT_NON_FIPS control code.  [T7338,rCe52adf0948]
+
+   - Add GCRY_FIPS_FLAG_REJECT_PK_FLAGS constant.  [T7338,rC0414e126b9]
+
+   - Make SHA-1 non-FIPS internally for the 1.12 API.  This introduces
+     the GCRY_FIPS_FLAG_REJECT_MD_SHA1 constant.  [rC4ee91a94bc]
+
+   - Add GCRY_FIPS_FLAG_REJECT_PK_FLAGS.  [rC0414e126b9]
+
+   - Provide macros for each KEM enum constant.  [rCe9b1c3ec91]
+
+   - Add Dilithium (ML-DSA) support.  [T7640]
+
+   - Support optional random-override and support byte string data.
+     [rCcbefff5fca,rC3bb4a54f43]
+
+ * Performance:
+
+   - Add VAES/AVX512 accelerated implementation for AES which boosts
+     OCB performance by about 2 times on AMD Zen5.  [rC9e3af928ee]
+
+   - Avoid AVX512/AVX2/SSSE3 for single block processing with Zen5 for
+     ChaCha20.  [rCc1d9fff3b2]
+
+   - Avoid AVX/AVX2/AVX512 when CPU has high vector inst latency like
+     Zen5 for Blake2.  [rCe5bc3b2826]
+
+   - Various optimizations for Camellia.
+     [rCf5848080d4,rCb9bafd6c6c,rC8b538a8c76]
+
+   - Add POLYVAL acceleration for RISC-V and GCM-SIV.  [rC00815c4207]
+
+   - Add RISC-V Zbb+Zbc implementation of CRC.  [rCab4fa2a19c]
+
+   - Add RISC-V vector cryptography implementation of GHASH.
+     [rCcc2a4b6388]
+
+   - Add RISC-V vector cryptography implementation of AES.
+     [rCb000ab6025]
+
+   - Add RISC-V vector cryptography implementations of SHA256 and
+     SHA512.  [rCcc1d5b0b5e]
+
+   - Add AVX2 and AVX512 code paths to improve CRC.  [rCc30788969d]
+
+ * Bug fixes:
+
+   - Use secure MPI in _gcry_mpi_assign_limb_space.  [rC6e77b09cff]
+
+   - Use CSIDL_COMMON_APPDATA instead of /etc on Windows.  [rCd5e3cbfd88]
+
+   - Apply a Kyber patch from upstream.  [rCbdc3724d72]
+
+   - Fix an edge case in Jent initialization.  [rC0ceca9993f]
+
+   - mceliece6688128f: Fix stack overflow crash on win64/wine
+     [rC5bd9320171]
+
+ * Other:
+
+  - Add support for IBM z/OS, fixing -lpthread check with glibc.
+    [rC5af59d8454]
+
+  - Introduce mpi_tfr and use it for point_tfr to decrease EM signal
+    and increase EM noise.  [rC4e65996bb8]
+
+  - Handle HAVE_BROKEN_MLOCK for the case of building with ASAN.
+    [T7889]
+
+  - Harden mask generation against branch optimization for several
+    algorithms.  [e.g. rC4012e9a037,rCbf7546c502,rC052b03fb0c]
+
+  - Improve constant-time operation for ECDSA.  [T7519,rC0bd4c77be6]
+
+
+ Changes also found in 1.11.2:
 
  * Bug fixes:
 
@@ -12,11 +95,11 @@ Noteworthy changes in version 1.11.2 (2025-08-04)  [C26/A6/R0]
      the KEM interface and a few folks are using this curve.  [T7698]
 
    - Fix a missing initialization in RSA's generate_fips.
-     [rG448693047f]
+     [rG292cb75a72]
 
  * Other:
 
-   - Silence GCC 15 warnings [rG7ebe90e555,T7617]
+   - Silence GCC 15 warnings [rCd5fb7cd9b3,T7617]
 
    - Provide a prototype for __udiv_qrnnd for PowerPC and Alpha which
      is required due to GCC-15 changes.  [T7721]
@@ -27,16 +110,8 @@ Noteworthy changes in version 1.11.2 (2025-08-04)  [C26/A6/R0]
    - Use '.rodata' section for read-only data of poly1305-p10le.
      [T7721]
 
- * Interface changes relative to the 1.11.1 release:
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   GCRY_KEM_RAW_P256R1                   NEW enum.
 
-
- Release-info: https://dev.gnupg.org/T7642
-
-
-Noteworthy changes in version 1.11.1 (2025-05-07)  [C25/A5/R1]
--------------------------------------------------
+ Changes also found in 1.11.1:
 
  * Bug fixes:
 
@@ -93,7 +168,23 @@ Noteworthy changes in version 1.11.1 (2025-05-07)  [C25/A5/R1]
    - Remove WindowsCE support.  [T7486]
 
 
- Release-info: https://dev.gnupg.org/T7166
+ * Interface changes relative to the 1.11.0 release:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   GCRY_KEM_RAW_P256R1                   NEW enum and const.
+   GCRYCTL_FIPS_SERVICE_INDICATOR        NEW enum.
+   GCRYCTL_FIPS_REJECT_NON_FIPS          NEW enum.
+   GCRY_FIPS_FLAG_REJECT_PK_FLAGS        NEW const.
+   GCRY_FIPS_FLAG_REJECT_MD_SHA1         NEW const.
+
+
+ Release-info: https://dev.gnupg.org/T7643
+
+
+Release dates of 1.11 versions
+------------------------------
+
+ Version 1.11.2 (2025-08-04) https://dev.gnupg.org/T7642
+ Version 1.11.1 (2025-05-07) https://dev.gnupg.org/T7166
 
 
 Noteworthy changes in version 1.11.0 (2024-06-19)  [C25/A5/R0]
