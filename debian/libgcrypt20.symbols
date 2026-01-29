@@ -44,6 +44,7 @@ libgcrypt.so.20 libgcrypt20 #MINVER#
  gcry_kdf_open@GCRYPT_1.6 1.11.0
  gcry_kem_decap@GCRYPT_1.6 1.11.0
  gcry_kem_encap@GCRYPT_1.6 1.11.0
+ gcry_kem_genkey@GCRYPT_1.6 1.12.0
  gcry_kem_keypair@GCRYPT_1.6 1.11.0
  gcry_log_debug@GCRYPT_1.6 1.11.0
  gcry_log_debughex@GCRYPT_1.6 1.11.0
