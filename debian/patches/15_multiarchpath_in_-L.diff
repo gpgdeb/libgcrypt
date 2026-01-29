@@ -8,15 +8,15 @@ Forwarded: not-needed
 
 --- a/src/libgcrypt-config.in
 +++ b/src/libgcrypt-config.in
-@@ -164,9 +164,10 @@
+@@ -164,9 +164,10 @@ fi
  if test "$echo_libs" = "yes"; then
      libdirs=""
      libs_final="$libs"
 +    debianmultiarch=`if command -v dpkg-architecture > /dev/null ; then dpkg-architecture -qDEB_HOST_MULTIARCH ; fi`
  
      # Set up `libdirs'.
--    if test "x$libdir" != "x/usr/lib" -a "x$libdir" != "x/lib"; then
-+    if test "x$libdir" != "x/usr/lib" -a "x$libdir" != "x/lib" -a "x$libdir" != "x/lib/${debianmultiarch}" ; then
+-    if test "x$libdir" != "x/usr/lib" && test "x$libdir" != "x/lib"; then
++    if test "x$libdir" != "x/usr/lib" && test "x$libdir" != "x/lib" && test "x$libdir" != "x/lib/${debianmultiarch}" ; then
  	libdirs="-L$libdir"
      fi
  

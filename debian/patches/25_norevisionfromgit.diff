@@ -7,9 +7,7 @@ Last-Update: 2021-01-19
 
 --- a/autogen.sh
 +++ b/autogen.sh
-@@ -263,12 +263,12 @@
-       [ -n "$tmp" ] && beta=yes
-       rev=$(git rev-parse --short HEAD | tr -d '\n\r')
+@@ -285,8 +285,8 @@ if [ "$myhost" = "find-version" ]; then
        rvd=$((0x$(echo ${rev} | dd bs=1 count=4 2>/dev/null)))
      else
        ingit=no
@@ -17,8 +15,6 @@ Last-Update: 2021-01-19
 -      tmp="-unknown"
 +      beta=no
 +      tmp=""
+       cid="0000000"
        rev="0000000"
        rvd="0"
-     fi
- 
-     echo "$package-$vers$tmp:$beta:$ingit:$vers$tmp:$vers:$tmp:$rev:$rvd:"
