@@ -111,9 +111,10 @@ host_triplet = @host@
 @USE_DSA_TRUE@am__append_2 = fips186-dsa dsa-rfc6979 t-dsa
 @USE_ECC_TRUE@am__append_3 = curves t-ecdsa t-ed25519 t-cv25519 t-x448 t-ed448
 @USE_KYBER_TRUE@am__append_4 = t-mlkem
-TESTS = $(am__EXEEXT_5) $(tests_sh) $(am__EXEEXT_6) $(tests_sh_last)
+@USE_DILITHIUM_TRUE@am__append_5 = t-mldsa
+TESTS = $(am__EXEEXT_6) $(tests_sh) $(am__EXEEXT_7) $(tests_sh_last)
 EXTRA_PROGRAMS = testapi$(EXEEXT) pkbench$(EXEEXT)
-noinst_PROGRAMS = testdrv$(EXEEXT) $(am__EXEEXT_5) $(am__EXEEXT_6) \
+noinst_PROGRAMS = testdrv$(EXEEXT) $(am__EXEEXT_6) $(am__EXEEXT_7) \
 	fipsdrv$(EXEEXT) rsacvt$(EXEEXT) genhashdata$(EXEEXT) \
 	gchash$(EXEEXT)
 subdir = tests
@@ -140,7 +141,8 @@ CONFIG_CLEAN_VPATH_FILES =
 @USE_ECC_TRUE@	t-ed25519$(EXEEXT) t-cv25519$(EXEEXT) \
 @USE_ECC_TRUE@	t-x448$(EXEEXT) t-ed448$(EXEEXT)
 @USE_KYBER_TRUE@am__EXEEXT_4 = t-mlkem$(EXEEXT)
-am__EXEEXT_5 = version$(EXEEXT) t-secmem$(EXEEXT) mpitests$(EXEEXT) \
+@USE_DILITHIUM_TRUE@am__EXEEXT_5 = t-mldsa$(EXEEXT)
+am__EXEEXT_6 = version$(EXEEXT) t-secmem$(EXEEXT) mpitests$(EXEEXT) \
 	t-sexp$(EXEEXT) t-convert$(EXEEXT) t-mpi-bit$(EXEEXT) \
 	t-mpi-point$(EXEEXT) t-lock$(EXEEXT) prime$(EXEEXT) \
 	basic$(EXEEXT) keygen$(EXEEXT) pubkey$(EXEEXT) hmac$(EXEEXT) \
@@ -148,8 +150,8 @@ am__EXEEXT_5 = version$(EXEEXT) t-secmem$(EXEEXT) mpitests$(EXEEXT) \
 	aeswrap$(EXEEXT) random$(EXEEXT) t-kem$(EXEEXT) \
 	t-thread-local$(EXEEXT) t-fips-service-ind$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4)
-am__EXEEXT_6 = benchmark$(EXEEXT) bench-slope$(EXEEXT)
+	$(am__EXEEXT_4) $(am__EXEEXT_5)
+am__EXEEXT_7 = benchmark$(EXEEXT) bench-slope$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 aeswrap_SOURCES = aeswrap.c
 aeswrap_OBJECTS = aeswrap.$(OBJEXT)
@@ -286,6 +288,10 @@ t_lock_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
 t_lock_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_lock_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+t_mldsa_SOURCES = t-mldsa.c
+t_mldsa_OBJECTS = t-mldsa.$(OBJEXT)
+t_mldsa_LDADD = $(LDADD)
+t_mldsa_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
 t_mlkem_SOURCES = t-mlkem.c
 t_mlkem_OBJECTS = t-mlkem.$(OBJEXT)
 t_mlkem_LDADD = $(LDADD)
@@ -366,12 +372,13 @@ am__depfiles_remade = ./$(DEPDIR)/aeswrap.Po ./$(DEPDIR)/basic.Po \
 	./$(DEPDIR)/t-cv25519.Po ./$(DEPDIR)/t-dsa.Po \
 	./$(DEPDIR)/t-ecdsa.Po ./$(DEPDIR)/t-ed25519.Po \
 	./$(DEPDIR)/t-ed448.Po ./$(DEPDIR)/t-fips-service-ind.Po \
-	./$(DEPDIR)/t-kem.Po ./$(DEPDIR)/t-mlkem.Po \
-	./$(DEPDIR)/t-mpi-bit.Po ./$(DEPDIR)/t-mpi-point.Po \
-	./$(DEPDIR)/t-rsa-15.Po ./$(DEPDIR)/t-rsa-pss.Po \
-	./$(DEPDIR)/t-rsa-testparm.Po ./$(DEPDIR)/t-secmem.Po \
-	./$(DEPDIR)/t-sexp.Po ./$(DEPDIR)/t-x448.Po \
-	./$(DEPDIR)/t_kdf-t-kdf.Po ./$(DEPDIR)/t_lock-t-lock.Po \
+	./$(DEPDIR)/t-kem.Po ./$(DEPDIR)/t-mldsa.Po \
+	./$(DEPDIR)/t-mlkem.Po ./$(DEPDIR)/t-mpi-bit.Po \
+	./$(DEPDIR)/t-mpi-point.Po ./$(DEPDIR)/t-rsa-15.Po \
+	./$(DEPDIR)/t-rsa-pss.Po ./$(DEPDIR)/t-rsa-testparm.Po \
+	./$(DEPDIR)/t-secmem.Po ./$(DEPDIR)/t-sexp.Po \
+	./$(DEPDIR)/t-x448.Po ./$(DEPDIR)/t_kdf-t-kdf.Po \
+	./$(DEPDIR)/t_lock-t-lock.Po \
 	./$(DEPDIR)/t_thread_local-t-thread-local.Po \
 	./$(DEPDIR)/testapi.Po ./$(DEPDIR)/testdrv.Po \
 	./$(DEPDIR)/version.Po
@@ -399,8 +406,8 @@ SOURCES = aeswrap.c basic.c bench-slope.c benchmark.c curves.c \
 	hashtest.c hmac.c keygen.c keygrip.c mpitests.c pkbench.c \
 	pkcs1v2.c prime.c pubkey.c random.c rsacvt.c t-convert.c \
 	t-cv25519.c t-dsa.c t-ecdsa.c t-ed25519.c t-ed448.c \
-	t-fips-service-ind.c t-kdf.c t-kem.c t-lock.c t-mlkem.c \
-	t-mpi-bit.c t-mpi-point.c t-rsa-15.c t-rsa-pss.c \
+	t-fips-service-ind.c t-kdf.c t-kem.c t-lock.c t-mldsa.c \
+	t-mlkem.c t-mpi-bit.c t-mpi-point.c t-rsa-15.c t-rsa-pss.c \
 	t-rsa-testparm.c t-secmem.c t-sexp.c t-thread-local.c t-x448.c \
 	testapi.c testdrv.c version.c
 DIST_SOURCES = aeswrap.c basic.c bench-slope.c benchmark.c curves.c \
@@ -408,8 +415,8 @@ DIST_SOURCES = aeswrap.c basic.c bench-slope.c benchmark.c curves.c \
 	hashtest.c hmac.c keygen.c keygrip.c mpitests.c pkbench.c \
 	pkcs1v2.c prime.c pubkey.c random.c rsacvt.c t-convert.c \
 	t-cv25519.c t-dsa.c t-ecdsa.c t-ed25519.c t-ed448.c \
-	t-fips-service-ind.c t-kdf.c t-kem.c t-lock.c t-mlkem.c \
-	t-mpi-bit.c t-mpi-point.c t-rsa-15.c t-rsa-pss.c \
+	t-fips-service-ind.c t-kdf.c t-kem.c t-lock.c t-mldsa.c \
+	t-mlkem.c t-mpi-bit.c t-mpi-point.c t-rsa-15.c t-rsa-pss.c \
 	t-rsa-testparm.c t-secmem.c t-sexp.c t-thread-local.c t-x448.c \
 	testapi.c testdrv.c version.c
 am__can_run_installinfo = \
@@ -502,6 +509,7 @@ ETAGS = @ETAGS@
 EXEEXT = @EXEEXT@
 EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 FGREP = @FGREP@
+FILECMD = @FILECMD@
 GCRYPT_CIPHERS = @GCRYPT_CIPHERS@
 GCRYPT_DIGESTS = @GCRYPT_DIGESTS@
 GCRYPT_HWF_MODULES = @GCRYPT_HWF_MODULES@
@@ -540,9 +548,12 @@ LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
+MARCH_RVA22U64_WITH_VEC = @MARCH_RVA22U64_WITH_VEC@
+MARCH_RVA23U64_BASE = @MARCH_RVA23U64_BASE@
 MKDIR_P = @MKDIR_P@
 MPI_SFLAGS = @MPI_SFLAGS@
 NM = @NM@
@@ -636,7 +647,7 @@ tests_bin = version t-secmem mpitests t-sexp t-convert t-mpi-bit \
 	t-mpi-point t-lock prime basic keygen pubkey hmac hashtest \
 	t-kdf keygrip aeswrap random t-kem t-thread-local \
 	t-fips-service-ind $(am__append_1) $(am__append_2) \
-	$(am__append_3) $(am__append_4)
+	$(am__append_3) $(am__append_4) $(am__append_5)
 tests_bin_last = benchmark bench-slope
 tests_sh = basic-disable-all-hwf
 tests_sh_last = hashtest-6g hashtest-256g
@@ -657,7 +668,7 @@ CLEANFILES = testdrv-build
 EXTRA_DIST = README rsa-16k.key \
 	     pkcs1v2-oaep.h pkcs1v2-pss.h pkcs1v2-v15c.h pkcs1v2-v15s.h \
 	     t-ed25519.inp t-ed448.inp t-dsa.inp t-ecdsa.inp t-rsa-15.inp \
-	     t-rsa-pss.inp t-mlkem.inp \
+	     t-rsa-pss.inp t-mlkem.inp t-mldsa.inp \
 	     stopwatch.h hashtest-6g.in hashtest-256g.in \
 	     sha3-224.h sha3-256.h sha3-384.h sha3-512.h blake2b.h blake2s.h \
 	     basic-disable-all-hwf.in basic_all_hwfeature_combinations.sh
@@ -856,6 +867,10 @@ t-lock$(EXEEXT): $(t_lock_OBJECTS) $(t_lock_DEPENDENCIES) $(EXTRA_t_lock_DEPENDE
 	@rm -f t-lock$(EXEEXT)
 	$(AM_V_CCLD)$(t_lock_LINK) $(t_lock_OBJECTS) $(t_lock_LDADD) $(LIBS)
 
+t-mldsa$(EXEEXT): $(t_mldsa_OBJECTS) $(t_mldsa_DEPENDENCIES) $(EXTRA_t_mldsa_DEPENDENCIES) 
+	@rm -f t-mldsa$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(t_mldsa_OBJECTS) $(t_mldsa_LDADD) $(LIBS)
+
 t-mlkem$(EXEEXT): $(t_mlkem_OBJECTS) $(t_mlkem_DEPENDENCIES) $(EXTRA_t_mlkem_DEPENDENCIES) 
 	@rm -f t-mlkem$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(t_mlkem_OBJECTS) $(t_mlkem_LDADD) $(LIBS)
@@ -943,6 +958,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-ed448.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-fips-service-ind.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-kem.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mldsa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mlkem.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mpi-bit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mpi-point.Po@am__quote@ # am--include-marker
@@ -1282,6 +1298,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/t-ed448.Po
 	-rm -f ./$(DEPDIR)/t-fips-service-ind.Po
 	-rm -f ./$(DEPDIR)/t-kem.Po
+	-rm -f ./$(DEPDIR)/t-mldsa.Po
 	-rm -f ./$(DEPDIR)/t-mlkem.Po
 	-rm -f ./$(DEPDIR)/t-mpi-bit.Po
 	-rm -f ./$(DEPDIR)/t-mpi-point.Po
@@ -1371,6 +1388,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/t-ed448.Po
 	-rm -f ./$(DEPDIR)/t-fips-service-ind.Po
 	-rm -f ./$(DEPDIR)/t-kem.Po
+	-rm -f ./$(DEPDIR)/t-mldsa.Po
 	-rm -f ./$(DEPDIR)/t-mlkem.Po
 	-rm -f ./$(DEPDIR)/t-mpi-bit.Po
 	-rm -f ./$(DEPDIR)/t-mpi-point.Po
@@ -1432,6 +1450,7 @@ hashtest-256g.log:  hashtest-6g.log
 testdrv-build: testdrv.c
 	$(CC_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(LDFLAGS_FOR_BUILD) \
 	  $(CPPFLAGS_FOR_BUILD) -DTESTDRV_EXEEXT=\"$(EXEEXT)\" \
+	  -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\" \
           -o $@ $(srcdir)/testdrv.c
 
 # xcheck uses our new testdrv instead of the automake test runner.

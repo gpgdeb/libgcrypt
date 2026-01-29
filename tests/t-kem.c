@@ -43,12 +43,15 @@ test_kem_sntrup761 (int testno)
   uint8_t key1[GCRY_KEM_SNTRUP761_SHARED_LEN];
   uint8_t key2[GCRY_KEM_SNTRUP761_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_SNTRUP761,
-                          pubkey, GCRY_KEM_SNTRUP761_PUBKEY_LEN,
-                          seckey, GCRY_KEM_SNTRUP761_SECKEY_LEN);
+  info (" Checking SNTRUP761.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_SNTRUP761,
+                         pubkey, GCRY_KEM_SNTRUP761_PUBKEY_LEN,
+                         seckey, GCRY_KEM_SNTRUP761_SECKEY_LEN,
+                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -59,7 +62,7 @@ test_kem_sntrup761 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_enc %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_encap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -70,7 +73,7 @@ test_kem_sntrup761 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_dec %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_decap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -101,12 +104,15 @@ test_kem_mceliece6688128f (int testno)
   uint8_t key1[GCRY_KEM_CM6688128F_SHARED_LEN];
   uint8_t key2[GCRY_KEM_CM6688128F_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_CM6688128F,
-			  pubkey, GCRY_KEM_CM6688128F_PUBKEY_LEN,
-			  seckey, GCRY_KEM_CM6688128F_SECKEY_LEN);
+  info (" Checking CM6688128F.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_CM6688128F,
+                         pubkey, GCRY_KEM_CM6688128F_PUBKEY_LEN,
+                         seckey, GCRY_KEM_CM6688128F_SECKEY_LEN,
+                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -117,7 +123,7 @@ test_kem_mceliece6688128f (int testno)
 			NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_enc %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_encap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -128,7 +134,7 @@ test_kem_mceliece6688128f (int testno)
 			NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_dec %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_decap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -160,12 +166,15 @@ test_kem_mlkem512 (int testno)
   uint8_t key1[GCRY_KEM_MLKEM512_SHARED_LEN];
   uint8_t key2[GCRY_KEM_MLKEM512_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_MLKEM512,
-                          pubkey, GCRY_KEM_MLKEM512_PUBKEY_LEN,
-                          seckey, GCRY_KEM_MLKEM512_SECKEY_LEN);
+  info (" Checking MLKEM512.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_MLKEM512,
+                         pubkey, GCRY_KEM_MLKEM512_PUBKEY_LEN,
+                         seckey, GCRY_KEM_MLKEM512_SECKEY_LEN,
+                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -176,7 +185,7 @@ test_kem_mlkem512 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_enc %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_encap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -187,7 +196,7 @@ test_kem_mlkem512 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_dec %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_decap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -217,12 +226,15 @@ test_kem_mlkem768 (int testno)
   uint8_t key1[GCRY_KEM_MLKEM768_SHARED_LEN];
   uint8_t key2[GCRY_KEM_MLKEM768_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_MLKEM768,
-                          pubkey, GCRY_KEM_MLKEM768_PUBKEY_LEN,
-                          seckey, GCRY_KEM_MLKEM768_SECKEY_LEN);
+  info (" Checking MLKEM768.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_MLKEM768,
+                         pubkey, GCRY_KEM_MLKEM768_PUBKEY_LEN,
+                         seckey, GCRY_KEM_MLKEM768_SECKEY_LEN,
+                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -233,7 +245,7 @@ test_kem_mlkem768 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_enc %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_encap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -244,7 +256,7 @@ test_kem_mlkem768 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_dec %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_decap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -274,12 +286,15 @@ test_kem_mlkem1024 (int testno)
   uint8_t key1[GCRY_KEM_MLKEM1024_SHARED_LEN];
   uint8_t key2[GCRY_KEM_MLKEM1024_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_MLKEM1024,
-                          pubkey, GCRY_KEM_MLKEM1024_PUBKEY_LEN,
-                          seckey, GCRY_KEM_MLKEM1024_SECKEY_LEN);
+  info (" Checking MLKEM1024.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_MLKEM1024,
+                         pubkey, GCRY_KEM_MLKEM1024_PUBKEY_LEN,
+                         seckey, GCRY_KEM_MLKEM1024_SECKEY_LEN,
+                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -290,7 +305,7 @@ test_kem_mlkem1024 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_enc %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_encap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -301,7 +316,7 @@ test_kem_mlkem1024 (int testno)
                         NULL, 0);
   if (err)
     {
-      fail ("gcry_kem_dec %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_decap %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -333,13 +348,16 @@ test_kem_raw_x25519 (int testno)
   uint8_t key1[GCRY_KEM_RAW_X25519_SHARED_LEN];
   uint8_t key2[GCRY_KEM_RAW_X25519_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_RAW_X25519,
-                          pubkey, GCRY_KEM_ECC_X25519_PUBKEY_LEN,
-                          seckey, GCRY_KEM_ECC_X25519_SECKEY_LEN);
+  info (" Checking X25519.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_RAW_X25519,
+                         pubkey, GCRY_KEM_ECC_X25519_PUBKEY_LEN,
+                         seckey, GCRY_KEM_ECC_X25519_SECKEY_LEN,
+                         NULL, 0);
   if (in_fips_mode)
     {
       if (!err)
-        fail ("gcry_kem_keypair is not expected to work in FIPS mode for test %d",
+        fail ("gcry_kem_genkey is not expected to work in FIPS mode for test %d",
               testno);
       if (verbose > 1)
         info ("not executed in FIPS mode\n");
@@ -347,7 +365,7 @@ test_kem_raw_x25519 (int testno)
     }
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -400,13 +418,16 @@ test_kem_dhkem_x25519 (int testno)
   uint8_t key1[GCRY_KEM_DHKEM25519_SHARED_LEN];
   uint8_t key2[GCRY_KEM_DHKEM25519_SHARED_LEN];
 
-  err = gcry_kem_keypair (GCRY_KEM_DHKEM25519,
-                          pubkey, GCRY_KEM_DHKEM25519_PUBKEY_LEN,
-                          seckey, GCRY_KEM_DHKEM25519_SECKEY_LEN);
+  info (" Checking DHKEM25519.\n");
+
+  err = gcry_kem_genkey (GCRY_KEM_DHKEM25519,
+                         pubkey, GCRY_KEM_DHKEM25519_PUBKEY_LEN,
+                         seckey, GCRY_KEM_DHKEM25519_SECKEY_LEN,
+                         NULL, 0);
   if (in_fips_mode)
     {
       if (!err)
-        fail ("gcry_kem_keypair is not expected to work in FIPS mode for test %d",
+        fail ("gcry_kem_genkey is not expected to work in FIPS mode for test %d",
               testno);
       if (verbose > 1)
         info ("not executed in FIPS mode\n");
@@ -414,7 +435,7 @@ test_kem_dhkem_x25519 (int testno)
     }
   if (err)
     {
-      fail ("gcry_kem_keypair %d: %s", testno, gpg_strerror (err));
+      fail ("gcry_kem_genkey %d: %s", testno, gpg_strerror (err));
       return;
     }
 
@@ -476,17 +497,17 @@ check_kem (int n_loops)
   info ("Checking KEM.\n");
 
   ntests = 0;
-  testno = 0;
+
   if ((selected_algo & SELECTED_ALGO_SNTRUP761))
     {
-      for (; testno < n_loops; testno++)
+      for (testno = 0; testno < n_loops; testno++)
         test_kem_sntrup761 (testno);
       ntests += n_loops;
     }
 
   if ((selected_algo & SELECTED_ALGO_CM6688128F))
     {
-      for (; testno < n_loops; testno++)
+      for (testno = 0; testno < n_loops; testno++)
         test_kem_mceliece6688128f (testno);
       ntests += n_loops;
     }
@@ -494,21 +515,21 @@ check_kem (int n_loops)
 #ifdef USE_KYBER
   if ((selected_algo & SELECTED_ALGO_MLKEM512))
     {
-      for (; testno < ntests + n_loops; testno++)
+      for (testno = 0; testno < ntests + n_loops; testno++)
         test_kem_mlkem512 (testno);
       ntests += n_loops;
     }
 
   if ((selected_algo & SELECTED_ALGO_MLKEM768))
     {
-      for (; testno < ntests + n_loops; testno++)
+      for (testno = 0; testno < ntests + n_loops; testno++)
         test_kem_mlkem768 (testno);
       ntests += n_loops;
     }
 
   if ((selected_algo & SELECTED_ALGO_MLKEM1024))
     {
-      for (; testno < ntests + n_loops; testno++)
+      for (testno = 0; testno < ntests + n_loops; testno++)
         test_kem_mlkem1024 (testno);
       ntests += n_loops;
     }
@@ -516,14 +537,14 @@ check_kem (int n_loops)
 
   if ((selected_algo & SELECTED_ALGO_RAW_X25519))
     {
-      for (; testno < ntests + n_loops; testno++)
+      for (testno = 0; testno < ntests + n_loops; testno++)
         test_kem_raw_x25519 (testno);
       ntests += n_loops;
     }
 
   if ((selected_algo & SELECTED_ALGO_DHKEM25519))
     {
-      for (; testno < ntests + n_loops; testno++)
+      for (testno = 0; testno < ntests + n_loops; testno++)
         test_kem_dhkem_x25519 (testno);
       ntests += n_loops;
     }

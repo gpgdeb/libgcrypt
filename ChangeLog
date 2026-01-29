@@ -1,13 +1,894 @@
-2025-08-04  Werner Koch  <wk@gnupg.org>
+2026-01-29  Werner Koch  <wk@gnupg.org>
 
-	Release 1.11.2.
-	+ commit 737cc63600146f196738a6768679eb016cf866e9
+	Release 1.12.0.
+	+ commit efd5e1e7b4e7861b53eafdbf197fd6d4ff6f45e1
+	* configure.ac (NEED_GPG_ERROR_VERSION): Bump to 1.56
+
+	tests: Also distribute tests for RSA-PSS, Kyber and Dilithium.
+	+ commit 2284db4553c3e469a7457811bbe68909f276691f
+	* tests/testdrv.c (testpgms): Add t-rsa-pss, t-mlda, and t-mlkem.
+	* tests/t-fips-service-ind.c (check_cipher_o_s_e_d_c): Fix printf
+	format.
+
+	tests: Fix building of testdrv-build.
+	+ commit 12b067260d7866259af18ac302bf66bf6931c26f
+	* tests/Makefile.am (testdrv-build): Add -DPACKAGE_VERSION.
+
+2026-01-21  NIIBE Yutaka  <gniibe@fsij.org>
+
+	fips,cipher: Fix the regression with disabled public-key algo.
+	+ commit 2c1d41b5f86f93db56432616bc3ee704b9c9cc39
+	* cipher/pubkey.c (_gcry_pk_decrypt): Continue the computation when
+	marking non-compliant.
+	(_gcry_pk_encrypt): When disabled, return an error.
+	(_gcry_pk_sign, _gcry_pk_sign_md): Likewise.
+	(gcry_pk_verify, _gcry_pk_verify_md, _gcry_pk_testkey): Likewise.
+
+2026-01-15  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Apply local change to texinfo.tex.
+	+ commit 85bbb33734362cdaaab46abd4b10b3200f026235
+	* build-aux/texinfo.tex: Fix typos.
+
+2026-01-14  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Update build-aux and m4 from libgpg-error.
+	+ commit e53ae4f14f880ac73ade669c0ad6bd1a73883813
+	* build-aux/compile, build-aux/depcomp: Update.
+	* build-aux/ltmain.sh, build-aux/mdate-sh: Likewise.
+	* build-aux/missing, build-aux/texinfo.tex: Likewise.
+	* m4/libtool.m4, m4/ltoptions.m4: Likewise.
+	* m4/ltsugar.m4, m4/ltversion.m4, m4/lt~obsolete.m4: Likewise.
+	* m4/gpg-error.m4: Likewise.
+
+2026-01-13  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Use secure MPI in _gcry_mpi_assign_limb_space.
+	+ commit 6e77b09cff56dd357cd2be332e3a2af200190382
+	* mpi/mpiutil.c (_gcry_mpi_assign_limb_space): Use secure memory
+	when destination is secure memory.
+
+2026-01-02  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	rijndael: add VAES/AVX512 accelerated implementation.
+	+ commit 9e3af928ee1100fc979a75dd4ae6a4ace2c36bef
+	* cipher/Makefile.am: Add 'rijndael-vaes-avx512-amd64.S'.
+	* cipher/rijndael-internal.h (USE_VAES_AVX512): New.
+	(RIJNDAEL_context_s) [USE_VAES_AVX512]: Add 'use_vaes_avx512'.
+	* cipher/rijndael-vaes-avx2-amd64.S
+	(_gcry_vaes_avx2_ocb_crypt_amd64): Minor optimization for aligned
+	blk8 OCB path.
+	* cipher/rijndael-vaes-avx512-amd64.S: New.
+	* cipher/rijndael-vaes.c [USE_VAES_AVX512]
+	(_gcry_vaes_avx512_cbc_dec_amd64, _gcry_vaes_avx512_cfb_dec_amd64)
+	(_gcry_vaes_avx512_ctr_enc_amd64)
+	(_gcry_vaes_avx512_ctr32le_enc_amd64)
+	(_gcry_vaes_avx512_ocb_aligned_crypt_amd64)
+	(_gcry_vaes_avx512_xts_crypt_amd64)
+	(_gcry_vaes_avx512_ecb_crypt_amd64): New.
+	(_gcry_aes_vaes_ecb_crypt, _gcry_aes_vaes_cbc_dec)
+	(_gcry_aes_vaes_cfb_dec, _gcry_aes_vaes_ctr_enc)
+	(_gcry_aes_vaes_ctr32le_enc, _gcry_aes_vaes_ocb_crypt)
+	(_gcry_aes_vaes_ocb_auth, _gcry_aes_vaes_xts_crypt)
+	[USE_VAES_AVX512]: Add AVX512 code paths.
+	* cipher/rijndael.c (do_setkey) [USE_VAES_AVX512]: Add setup for
+	'ctx->use_vaes_avx512'.
+	* configure.ac: Add 'rijndael-vaes-avx512-amd64.lo'.
+
+	rijndael-aesni: use assembly for moving first and last round key.
+	+ commit d5cf2b90c7d081988c84e23a8f874562fba1d775
+	* cipher/rijndael-aesni.c (do_aesni_prepare_decryption): Use
+	assembly for moving first and last round keys for decryption.
+
+	rijndael-aesni: prevent inlining AESNI functions by LTO.
+	+ commit 7afdbb2812b2fdeea7911f1f67e4079d4f6466e0
+	* cipher/rijndael-aesni.c (_gcry_aes_aesni_do_setkey)
+	(_gcry_aes_aesni_prepare_decryption, _gcry_aes_aesni_encrypt)
+	(_gcry_aes_aesni_ecb_crypt, _gcry_aes_aesni_cfb_enc)
+	(_gcry_aes_aesni_cbc_enc, _gcry_aes_aesni_ctr_enc)
+	(_gcry_aes_aesni_ctr32le_enc, _gcry_aes_aesni_decrypt)
+	(_gcry_aes_aesni_cfb_dec, _gcry_aes_aesni_cbc_dec)
+	(_gcry_aes_aesni_ocb_crypt, _gcry_aes_aesni_ocb_auth)
+	(_gcry_aes_aesni_xts_crypt): Mark function as noinline.
+
+	rijndael-riscv-zvkned: optimize do_prepare_decryption.
+	+ commit 4c9d7a3ba939255d78320d887eb648410949071d
+	* cipher/rijndael-riscv-zvkned.c (do_prepare_decryption): Unroll
+	loop.
+
+	rijndael-riscv-zvkned: optimize aes192 key setup.
+	+ commit ef372b484e0f0876a6657f5ca692c101b8c113bd
+	* cipher/rijndael-riscv-zvkned.c (AES192_KF1_GEN): Avoid use of
+	stack array for loading scalar value to vector register.
+
+	chacha20: avoid AVX512/AVX2/SSSE3 for single block processing with Zen5.
+	+ commit c1d9fff3b2ebde8d54b29e2ad0dce75c74de73ba
+	* cipher/chacha20.c (CHACHA20_context_s): Add
+	'skip_one_block_hw_impl'.
+	(chacha20_blocks, do_chacha20_encrypt_stream_tail): Avoid single
+	block / non-parallel processing with AVX512/AVX2/SSSE3.
+
+	blake2: avoid AVX/AVX2/AVX512 when CPU has high vector inst latency.
+	+ commit e5bc3b28260ef9967d713a75ad381ee7e97dcb88
+	* cipher/blake2.c (blake2b_init_ctx, blake2s_init_ctx): Disable
+	AVX/AVX2/AVX512 implementation if x86 CPU prefers GPR implementation
+	over scalar integer vector.
+	* src/hwf-common.h (hwf_x86_cpu_details)
+	(_gcry_hwf_x86_cpu_details): New.
+	* src/hwf-x86.c (x86_cpu_details, x86_hw_features)
+	(x86_detect_done, _gcry_hwf_x86_cpu_details): New.
+	(detect_x86_gnuc): Detect Zen5 and add 'cpu_details'.
+	(_gcry_hwf_detect_x86): Add 'x86_cpu_details' setup.
+
+	camellia-gfni-avx512: add 1-block constant-time implementation.
+	+ commit 8b538a8c766922337c6c0718271e9399072518f3
+	* cipher/camellia-gfni-avx512-amd64.S
+	(_gcry_camellia_gfni_avx512_enc_blk1)
+	(_gcry_camellia_gfni_avx512_dec_blk1): New.
+	* cipher/camellia-glue.c [USE_GFNI_AVX512]
+	(_gcry_camellia_gfni_avx512_enc_blk1)
+	(_gcry_camellia_gfni_avx512_dec_blk1): New prototypes.
+	(camellia_decrypt, camellia_encrypt) [USE_GFNI_AVX512]: Use
+	GFNI/AVX512 1-block implementation if supported by CPU.
+
+	aria-x86_64: fixes for CFI markings.
+	+ commit 861896b0fad8a7bac5c3ec303391d7b23ff22898
+	* cipher/aria-aesni-avx-amd64.S: Add missing CFI stack adjustments
+	after pushq/popq.
+	* cipher/aria-aesni-avx2-amd64.S: Likewise.
+	* cipher/aria-gfni-avx512-amd64.S: Likewise.
+
+	camellia-simd128: optimize round key loading and key setup.
+	+ commit b9bafd6c6cc59ac65d0103f2fd3ccc4a4a24a325
+	* cipher/camellia-simd128.h (if_vprolb128, vprolb128)
+	(vmovd128_amemld, vmovq128_amemld, vmovq128_memld)
+	(memory_barrier_with_vec, filter_8bit_3op): New.
+	(LE64_LO32, LE64_HI32): Remove.
+	(roundsm16, fls16, inpack16_pre, outunpack16): Use 'vmovd128_amemld'
+	and 'vmovq128_amemld' for loading round keys.
+	(camellia_f): Optimize/Rewrite and split core to ...
+	(camellia_f_core): ... this.
+	(camellia_f_xor_x): New.
+	(sp0044440444044404mask, sp1110111010011110mask)
+	(sp0222022222000222mask, sp3033303303303033mask): Adjust constants
+	for optimized/rewritten 'camellia_f'.
+	(camellia_setup128, camellia_setup256): Adjust for optimized
+	'camellia_f'; Use 'vmovq128_amemld' for loading round keys.
+	(FUNC_KEY_SETUP): Use 'vmovq128_amemld' instead of 'vmovq128'.
+
+	camellia-aesni-avx: optimize camellia_f used for key setup.
+	+ commit f5848080d41a6d706c881fcde0dd47390f609802
+	* cipher/camellia-aesni-avx-amd64.S (split_nibbles)
+	(filter_8bit_nibbles): New.
+	(filter_8bit): Refactor.
+	(transpose_8x8b): Remove.
+	(camellia_f, camellia_f_core): Refactor.
+	(.Lsbox4_input_mask): Remove.
+	(__camellia_avx_setup128, __camellia_avx_setup256): Adjust for new
+	'camellia_f'.
+
+2025-12-12  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi:ec: Fix for use of ec_mulm_lli in _gcry_mpi_ec_get_affine.
+	+ commit 92bbe34514ee180c074b882d8459cdf6b873ba0c
+	* mpi/ec.c (_gcry_mpi_ec_get_affine): Resize X and Y.  Add
+	GCRYECC_FLAG_LEAST_LEAK flag.
+
+	w32: Fix use of GetProcAddress.
+	+ commit 028926d3edb52ac2ea6bfabf92748c323265a1d7
+	* src/hwfeatures.c (_gcry_get_sysconfdir): Add a type cast.
+
+2025-12-04  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Add support for IBM z/OS, fixing -lpthread check with glibc.
+	+ commit 5af59d8454cea0231b622ee3ded6f4ead16d05b0
+	* configure.ac: Care about PRINTABLE_OS_NAME for IBM z/OS.
+	Handle have_pthread for IBM z/OS.
+	No check with -lpthread when we know about have_pthread.
+
+2025-12-02  Sachin T  <sachin.t@ibm.com>
+
+	Add support for IBM z/OS.
+	+ commit 550b2e2f13df95d8d8371181a6a606a0c062107d
+	* m4/libtool.m4: Add openedition* case.
+	* mpi/longlong.h: Exclude s390x GCC assembly on z/OS.
+	* src/secmem.c (lock_pool_pages): Allow !HAVE_MLOCK on z/OS.
+
+2025-11-27  Werner Koch  <wk@gnupg.org>
+
+	w32: Use CSIDL_COMMON_APPDATA instead of /etc.
+	+ commit d5e3cbfd8845a872d39f468da27a443cea4587e2
+	* src/hwfeatures.c [W32]: Include shlobj.h
+	(_gcry_get_sysconfdir): New.
+	(get_hwf_deny_file): New.  Use this instead of the HWF_DENY_FILE
+	macro.
+	* src/fips.c (get_fips_force_file): New. Use this instead of
+	FIPS_FORCE_FILE.
+	(_gcry_initialize_fips_mode) [W32]: Do not parse files under "/proc".
+	* random/random.c (get_random_conf_file): New.  Use instead of
+	RANDOM_CONF_FILE macro.
+
+2025-11-25  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:kyber: Apply a change from upstream.
+	+ commit bdc3724d721dfd65fdd8cad311855461f9a101c1
+	* cipher/kyber-kdep.c (crypto_kem_dec): Fix the buffer size.
+
+2025-11-20  Gary Lin  <glin@suse.com>
+
+	kdf: Avoid redundant memcpy()
+	+ commit 670646bbf185587c7de039430d71a38b7f0f8597
+	* cipher/kdf.c (fill_block): Xor 'ref_block' and 'prev_block' directly
+	to avoid a redundant memcpy().
+
+2025-11-19  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Introduce mpi_tfr and use it for point_tfr.
+	+ commit 4e65996bb8707c890bff7aeb6e1ec44610b49257
+	* mpi/ec.c (point_tfr): New.
+	(mpi_ec_mul_point_lli): Use point_tfr.
+	* mpi/mpiutil.c (_gcry_mpi_tfr): New.
+	* src/mpi.h (mpi_tfr): New.
+	(_gcry_mpi_tfr): New.
+
+2025-10-29  NIIBE Yutaka  <gniibe@fsij.org>
+
+	secmem: Handle HAVE_BROKEN_MLOCK for the case with ASAN.
+	+ commit fe06287003a153d358f2ddb62ce5d1ec112b2e5c
+	* src/secmem.c [HAVE_BROKEN_MLOCK] (lock_pool_pages): Take care when
+	build with address sanitizer.
+
+	random:jent: Fix build with address sanitizer.
+	+ commit def1d4ea8f66abf23ef0def6d8d34060e1ee923e
+	* random/jitterentropy-base.c (jent_entropy_collector_alloc_internal):
+	Annotate with gpgrt_annotate_leaked_object.
+
+2025-10-23  NIIBE Yutaka  <gniibe@fsij.org>
+
+	random:jent: Fix for jent_rng_is_initialized.
+	+ commit 0ceca9993f5a94389624f6cf12e07165cd2391e4
+	* random/rndjent.c (_gcry_rndjent_poll): Set jent_rng_is_initialized
+	after successful initialization.
+	(_gcry_rndjent_fini): Clear jent_rng_is_initialized.
+
+2025-09-30  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	Add stack burning for PQC algorithms.
+	+ commit 1003c9412a4be0c1d248929267a73cf3849fa60b
+	* cipher/dilithium.h (DILITHIUM_KEYPAIR_STACK_BURN)
+	(DILITHIUM_SIGN_STACK_BURN, DILITHIUM_VERIFY_STACK_BURN): New.
+	* cipher/kem.c (_gcry_kem_genkey, _gcry_kem_encap)
+	(_gcry_kem_decap): Burn stack after calls to sntrup761, kyber and
+	mceliece6688128f algos.
+	* cipher/kyber.h (KYBER_KEYPAIR_STACK_BURN, KYBER_ENCAP_STACK_BURN)
+	(KYBER_DECAP_STACK_BURN): New.
+	* cipher/mceliece6688128f.h (MCELIECE6688128F_KEYPAIR_STACK_BURN)
+	(MCELIECE6688128F_ENC_STACK_BURN, MCELIECE6688128F_DEC_STACK_BURN): New.
+	* cipher/pubkey-dilithium.c (mldsa_generate, mldsa_sign)
+	(mldsa_verify): Burn stack after calls to dilithium algo.
+	* cipher/sntrup761.h (SNTRUP761_KEYPAIR_STACK_BURN)
+	(SNTRUP761_ENC_STACK_BURN, SNTRUP761_DEC_STACK_BURN): New.
+
+	const-time: add 64-bit fast paths for const-time buffer functions.
+	+ commit 11e8f4a8de263d9199479b290b8550e6a6ecc619
+	* src/const-time.c (_gcry_ct_not_memequal, _gcry_ct_memequal): Add
+	64-bit processing for larger than 7 byte inputs.
+
+2025-09-28  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	mceliece6688128f: use const-time helper for memory comparison.
+	+ commit 4c253746e52020254ede4f41d0440b41ca3aa8ec
+	* cipher/mceliece6688128f.c (sync_cmp): Use const-time helper for
+	comparison.
+
+	mceliece6688128f: harden mask generation against branch optimization.
+	+ commit 4012e9a037c5bf9f296ca89a6e94bb3600ec0d35
+	* cipher/mceliece6688128f.c (crypto_int64_negative_mask)
+	(crypto_int16_negative_mask, crypto_int32_negative_mask)
+	(crypto_uint64_signed_negative_mask, crypto_uint16_signed_negative_mask)
+	(crypto_uint32_signed_negative_mask, mask_nonzero, mask_leq, vec_cmov)
+	(layer, gen_e, gf_mul, same_mask, pk_gen): Generate masks with
+	const-time helper function.
+	* src/const-time.h (ct_u64_gen_mask, ct_u64_gen_inv_mask): New.
+
+	sntrup761: use const-time helpers for memory comparison and cond move.
+	+ commit 4e963e91dbe55b23ed0da2003c2de053c40f4c9a
+	* cipher/sntrup761.c (Ciphertexts_diff_mask): Use
+	'_gcry_ct_not_memequal' for checking if arrays are different.
+	(sntrup761_dec): Use '_gcry_ct_memmov_cond' for conditionally setting
+	'r_enc'.
+
+	sntrup761: harden mask generation against branch optimization.
+	+ commit bf7546c5028b0c740c4a7a7142de17bcee588e58
+	* cipher/sntrup761.c (int32_MINMAX, uint32_divmod_uint14)
+	(int32_divmod_uint14, int16_t_nonzero_mask, int16_t_negative_mask)
+	(Ciphertexts_diff_mask): Generate mask with const-time helper function.
+
+	kyber: harden mask generation against branch optimization.
+	+ commit 052b03fb0c6edea1a208ca0abb31ad09a86aa8e7
+	* cipher/kyber-kdep.c (polyvec_compress, polyvec_compress): Generate
+	mask with const-time helper function.
+
+	mpih-pow: harden condition calculation against branch optimization.
+	+ commit 96534d8c26c6c146482996cf120050e493b267c2
+	* mpi/mpih-pow.c (mont_reduc): Pass condition code through mask
+	generator to avoid optimization to branch by certain compilers.
+
+	cipher-xts: harden mask generation against branch optimization.
+	+ commit ee5cb3833d5b649ca360ab2bbde5ffaa28cbb717
+	* cipher/cipher-xts.c (xts_gfmul_byA): Generate mask with const-time
+	helper.
+
+	rijndael: harden mask generation against branch optimization.
+	+ commit f6b7a40f23c62a45ec1285388a5336c5cf313222
+	* cipher/rijndael.c (do_setkey): Generate 'rcon' mask with const-time
+	helper.
+	(_gcry_aes_xts_crypt): Generate tweak mask with const-time helper.
+
+	mceliece6688128f: fix stack overflow crash on win64/wine.
+	+ commit 5bd932017116f0edf49641d56382356b4c5c876e
+	* cipher/mceliece6688128f.c (pk_gen): Remove 'mat' array allocation and
+	rename function to ...
+	(pk_gen_mat): ... this.
+	(pk_gen): New wrapper for 'pk_gen_mat' with dynamic allocation of 'mat'
+	array.
+
+2025-09-27  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	t-kem: add info print for each algoritm.
+	+ commit 593525b4ce43db885068b4b968f70a609fe7edf2
+	* tests/t-kem.c (test_kem_sntrup761, test_kem_mceliece6688128f)
+	(test_kem_mlkem512, test_kem_mlkem768, test_kem_mlkem1024, test_kem_raw_x25519)
+	(test_kem_dhkem_x25519): Add 'Checking <algo>' info print.
+
+2025-09-25  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	hwfeatures: restore "intel-fast-vpgather" as dummy entry.
+	+ commit d2ec4e84b40a29564f1b0a7491993e35e92b6466
+	* src/hwfeatures.c (hwflist) [HAVE_CPU_ARCH_X86]: Add "intel-fast-vpgather"
+	HW feature string without mapping to any HWF flag.
+
+2025-09-24  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	mceliece6688128f: fix UBSAN runtime errors.
+	+ commit a786e3b6bf8cdc29aaa209b6528cf9b455677e1a
+	* cipher/mceliece6688128f.c (cbrecursion): Fix left shift of signed integer
+	by too many places, by casting to unsigned integer before shift.
+	(syndrome): Fix misaligned memory loads by using 'bufhelp.h'.
+
+	configure.ac: perform RISC-V vector crypto intrinsics bug checks without LTO
+	+ commit 5c9ce0cc51d9fdbd8d859756a26ab42c8a89333a
+	* configure.ac (gcry_cv_riscv_vsha2cl_intrinsics_work)
+	(gcry_cv_riscv_vaes_vs_intrinsics_work): Run check with '-fno-lto' compiler
+	flag.
+
+	hwf-x86: remove unused HWF_INTEL_FAST_VPGATHER.
+	+ commit 2bbbaca1824055d20975029a733ce84d8be5b297
+	* cipher/twofish-avx2-amd64.S (RNOT): Update comment on usage of this register
+	macro.
+	* doc/gcrypt.texi: Remove 'intel-fast-vpgather'.
+	* src/g10lib.h (HWF_INTEL_FAST_VPGATHER): Remove.
+	(HWF_INTEL_RDTSC, HWF_INTEL_SHAEXT, HWF_INTEL_VAES_VPCLMUL, HWF_INTEL_AVX512)
+	(HWF_INTEL_GFNI): Shift bit position to close the gap left by FAST_VPGATHER
+	removal.
+	* src/hwf-x86.c (detect_x86_gnuc): Remove HWF_INTEL_FAST_VPGATHER detection.
+	* src/hwfeatures.c (hwflist): Remove 'intel-fast-vpgather'.
+
+2025-09-23  Werner Koch  <wk@gnupg.org>
+
+	tests: Add helper option --exec to testdrv.
+	+ commit 276fe34410ccea1a48abc38f773d83b756b1c76c
+	* tests/testdrv.c (main): Add options --exec and --version.
+	(my_spawn): Remove DETACHED_PROCESS flag.
+
+2025-09-17  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	t-kem: fix test loop iteration.
+	+ commit 9f26fa62ee73ea4bac6b3fd28e50be811ff27f24
+	* tests/t-kem.c (check_kem): Reset loop iterator for each algo test loop.
+
+	hwfeature: fix "riscv-zvkg" HW feature mapping.
+	+ commit 561b2ffbeb632c9bfe135003209a05393018e745
+	* src/hwfeatures.c (hwflist) [HAVE_CPU_ARCH_RISCV]: Fix mapping from
+	ZVKNED to ZVKG for "riscv-zvkg".
+
+2025-08-20  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	cipher-gcm-riscv-zbb-zbc: add POLYVAL acceleration.
+	+ commit 00815c4207a151b5aea6591a4befbcdb832edc34
+	* cipher/cipher-gcm-riscv-zbb-zbc.c (_gcry_ghash_riscv_zbb_zbc): Rename to ...
+	(ghash_polyval_riscv_zbb_zbc): ... this; Add 'is_polyval' argument.
+	(_gcry_ghash_riscv_zbb_zbc): New.
+	(ghash_polyval_riscv_zbb_zbc): New.
+	* cipher/cipher-gcm.c [GCM_USE_RISCV_ZBB_ZBC]
+	(ghash_polyval_riscv_zbb_zbc): New.
+	(setupM) [GCM_USE_RISCV_ZBB_ZBC]: Add setup for 'c->u_mode.gcm.polyval_fn'.
+
+	Require RISC-V B extension for vector intrinsics implementations.
+	+ commit 729794458fc731fcecd168785c56ada69c800c2a
+	* cipher/Makefile.am (riscv_vector_cflags, riscv_vector_crypto_aes_cflags)
+	(riscv_vector_crypto_sha_cflags, riscv_vector_crypto_gcm_cflags): Use
+	MARCH_RVA22U64_WITH_VEC and MARCH_RVA23U64_BASE.
+	* cipher/chacha20.c (chacha20_do_setkey) [USE_RISCV_V]: Require HWF_RISCV_B.
+	* cipher/cipher-gcm.c (setupM) [GCM_UNSE_RISCV_ZVKG]: Likewise.
+	* cipher/rijndael.c (do_setkey) [USE_RISCV_V_CRYPTO]: Likewise.
+	(do_setkey) [USE_VP_RISCV]: Likewise.
+	* cipher/sha256.c (sha256_common_init) [USE_RISCV_V_CRYPTO]: Likewise.
+	* cipher/sha512.c (sha512_init_common) [USE_RISCV_V_CRYPTO]: Likewise.
+	* doc/gcrypt.texi: Document riscv-imafdc, riscv-b, riscv-v, riscv-zbb,
+	riscv-zbc, riscv-zvkb, riscv-zvkg, riscv-zvkned, riscv-zvknha and
+	riscv-zvknhb as supported hardware features.
+	* configure.ac (MARCH_RVA22U64_WITH_VEC, MARCH_RVA23U64_BASE)
+	(MARCH_RVA23U64_WITH_VEC_CRYPTO): New.
+	* src/g10lib.h (HWF_RISCV_B): Insert before HWF_RISCV_V.
+	* src/hwf-riscv.c (hwcap_features, hwprobe_features): Add HWF_RISCV_V.
+	(detect_riscv_hwf_by_toolchain) [__riscv_zba&&__riscv_zbb&&__riscv_zbs]: Add
+	faulty toolchain check for B extension.
+	* src/hwfeatures.c (hwflist) [HAVE_CPU_ARCH_RISCV]: Add "riscv-b".
+
+2025-08-16  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	Add RISC-V Zbb+Zbc implementation of CRC.
+	+ commit ab4fa2a19c9fb900e7864eb0a64656aa093f0ecb
+	* cipher/Makefile.am: Add 'crc-riscv-zbb-zbc.c'.
+	* cipher/crc-riscv-zbb-zbc.c: New.
+	* cipher/crc.c (USE_RISCV_ZBB_ZBC): New.
+	(CRC_CONTEXT) [USE_RISCV_ZBB_ZBC]: Add 'use_riscv_zbc'.
+	[USE_RISCV_ZBB_ZBC] (_gcry_crc32_riscv_zbb_zbc)
+	(_gcry_crc24rfc2440_riscv_zbb_zbc): New.
+	(crc32_init): Rename to ...
+	(generic_crc32_init): ... this; Add 'init_value' parameter.
+	(generic_crc32_init) [USE_RISCV_ZBB_ZBC]: Add HW feature check for RISC-V
+	Zbb+Zbc implementation.
+	(crc24rfc2440_init) [USE_RISCV_ZBB_ZBC]: Likewise.
+	(crc32_init, crc32rfc1510_init): Use 'generic_crc32_init'.
+	(crc32_write) [USE_RISCV_ZBB_ZBC]: Add RISC-V Zbb+Zbc implementation.
+	(crc24rfc2440_write) [USE_RISCV_ZBB_ZBC]: Likewise.
+	* configure.ac: Add 'crc-riscv-zbb-zbc.lo'.
+
+	Add RISC-V vector cryptography implementation of GHASH.
+	+ commit cc2a4b63889ea1b33bdeafd8bf5f31a424d4dfc0
+	* cipher/Makefile.am: Add 'cipher-gcm-riscv-zvkg.c'.
+	* cipher/cipher-gcm-riscv-zbb-zbc.c: Fix cipher-internal.h include.
+	* cipher/cipher-gcm-riscv-zvkg.c: New.
+	* cipher/cipher-gcm.c [GCM_USE_RISCV_ZVKG] (_gcry_ghash_setup_riscv_zvkg)
+	(_gcry_ghash_riscv_zvkg, _gcry_polyval_riscv_zvkg): New.
+	(setupM) [GCM_USE_RISCV_ZVKG]: Add setup for Zvkg implementation.
+	* cipher/cipher-internal.h (GCM_USE_RISCV_ZVKG): New.
+	* configure.ac: Add 'cipher-gcm-riscv-zvkg.lo'.
+	(GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST): Add check for Zvkg instrinsic.
+	* src/g10lib.h (HWF_RISCV_ZVKG): Insert before HWF_RISCV_ZVKNED.
+	* src/hwdf-riscv.h (HWF_RISCV_HWPROBE_EXT_ZVKG): New.
+	(hwprobe_features): Add HWF_RISCV_ZVKG.
+	* src/hwfeatures.c (hwflist) [HAVE_CPU_ARCH_RISCV]: Add "riscv-zvkg".
+
+2025-08-12  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Fix redefinition of types.
+	+ commit 85927387741fad2aba4f8cc01e3b10ff4ff4c57f
+	* mpi/mpi-internal.h (mpi_ptr_t): Remove, as it moved to mpi.h.
+	(mpi_size_t): Likewise.
+
+2025-08-09  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	Add RISC-V vector cryptography implementation of AES.
+	+ commit b000ab602531b2c29e93736afc1686dea8ed6782
+	* cipher/Makefile.am: Add 'rijndael-riscv-zvkned.c'.
+	* cipher/rijndael-internal.h (USE_RISCV_V_CRYPTO): New.
+	* cipher/rijndael-riscv-zvkned.c: New.
+	* cipher/rijndael.c [USE_RISCV_V_CRYPTO]
+	(_gcry_aes_riscv_zvkned_setup_acceleration, _gcry_aes_riscv_zvkned_setkey)
+	(_gcry_aes_riscv_zvkned_prepare_decryption)
+	(_gcry_aes_riscv_zvkned_encrypt, _gcry_aes_riscv_zvkned_decrypt)
+	(_gcry_aes_riscv_zvkned_cfb_enc, _gcry_aes_riscv_zvkned_cbc_enc)
+	(_gcry_aes_riscv_zvkned_ctr_enc, _gcry_aes_riscv_zvkned_ctr32le_enc)
+	(_gcry_aes_riscv_zvkned_cfb_dec, _gcry_aes_riscv_zvkned_cbc_dec)
+	(_gcry_aes_riscv_zvkned_ocb_crypt, _gcry_aes_riscv_zvkned_ocb_auth)
+	(_gcry_aes_riscv_zvkned_ecb_crypt, _gcry_aes_riscv_zvkned_xts_crypt): New.
+	(do_setkey) [USE_RISCV_V_CRYPTO]: Add setup for RISC-V vector cryptography
+	extension implementation.
+	* configure.ac: Add 'rijndael-riscv-zvkned.lo'.
+	(GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST): Add AES intrinsics.
+	(gcry_cv_riscv_vaes_vs_intrinsics_work, HAVE_BROKEN_VAES_VS_INTRINSIC): New.
+	* src/g10lib.h (HWF_RISCV_ZVKNED): Insert before HWF_RISCV_ZVKNHA.
+	* src/hwf-riscv.c (HWF_RISCV_HWPROBE_EXT_ZVKNED): New.
+	(hwprobe_features): Add Zvkned.
+	* src/hwfeatures.c (hwflist): Add "riscv-zvkned".
+
+2025-08-07  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	riscv: always use -mstrict-align for vector intrinsic implementations.
+	+ commit 79149be2b0bac5b62dd333e0deff86dec170d6af
+	* cipher/Makefile.am (riscv_vector_cflags, riscv_vector_crypto_cflags): Use
+	"-mstrict-align" if SUPPORT_CC_RISCV_MSTRICT_ALIGN is set.
+	* configure.ac (SUPPORT_CC_RISCV_MSTRICT_ALIGN): Add check for "-mstrict-align"
+	compiler flag support.
+
+	Add RISC-V vector cryptography implementations of SHA256 and SHA512.
+	+ commit cc1d5b0b5ed30d4c36edbea128a6ab825d15415e
+	* cipher/Makefile.am: Add 'sha256-riscv-zvknha-zvkb.c' and
+	'sha512-riscv-zvknhb-zvkb.c'.
+	* cipher/sha256-riscv-zvknha-zvkb.c: New.
+	* cipher/sha256.c (USE_RISCV_V_CRYPTO): New.
+	[USE_RISCV_V_CRYPTO] (_gcry_sha256_riscv_v_check_hw)
+	(_gcry_sha256_transform_riscv_zvknha_zvkb)
+	(do_sha256_transform_riscv_zvknha): New.
+	(sha256_common_init) [sha256_common_init]: Enable new implementation
+	if supported by HW.
+	* cipher/sha512-riscv-zvknhb-zvkb.c: New.
+	* cipher/sha512.c (USE_RISCV_V_CRYPTO): New.
+	[USE_RISCV_V_CRYPTO] (_gcry_sha512_riscv_v_check_hw)
+	(_gcry_sha512_transform_riscv_zvknhb_zvkb)
+	(do_sha512_transform_riscv_zvknhb): New.
+	(sha512_common_init) [sha512_common_init]: Enable new implementation
+	if supported by HW.
+	* configure.ac: Add 'sha256-riscv-zvknha-zvkb.lo' and
+	'sha512-riscv-zvknhb-zvkb.lo'.
+	(GCRY_RISCV_VECTOR_INTRINSICS_TEST): New.
+	(gcry_cv_cc_riscv_vector_intrinsics)
+	(gcry_cv_cc_riscv_vector_intrinsics_cflags): Move test code to new
+	macro GCRY_RISCV_VECTOR_INTRINSICS_TEST.
+	(GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST)
+	(gcry_cv_cc_riscv_vector_crypto_intrinsics)
+	(gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags)
+	(gcry_cv_riscv_vsha2cl_intrinsics_work): New.
+	* src/g10lib.h [HAVE_CPU_ARCH_RISCV] (HWF_RISCV_ZVKB, HWF_RISCV_ZVKNHA)
+	(HWF_RISCV_ZVKNHB): New.
+	* src/hwf-riscv.c (HWF_RISCV_HWPROBE_EXT_ZVKB)
+	(HWF_RISCV_HWPROBE_EXT_ZVKNHA, HWF_RISCV_HWPROBE_EXT_ZVKNHB): New.
+	* src/hwfeatures.c (hwflist) [HAVE_CPU_ARCH_RISCV]: Add "riscv-zvkb",
+	"riscv-zvknha" and "riscv-zvknhb".
+
+	bithelp: fix __riscv_zbb check for _gcry_ctz_no_zero.
+	+ commit ca951abe818e26b8cefb11329f249213bc35b8d8
+	* cipher/bithelp.h (_gcry_ctz_no_zero): Fix __riscv_zbb version check.
+
+	rijndael-vp: clean-ups.
+	+ commit 788e40f888032407c9001e1e54e7acc19db3f23d
+	* cipher/rijndael-vp-riscv.c: Remove "./" from "cipher-internal.h" include.
+	* cipher/rijndael-vp-simd128.h (aes_simd128_xts_enc, aes_simd128_xts_dec): Make
+	these functions static.
+
+	configure.ac: deduplicate intrinsics test code.
+	+ commit 9001f098680ab1a365380974b7f183ecb756a026
+	* configure.ac (gcry_cv_cc_aarch64_neon_intrinsics)
+	(gcry_cv_cc_aarch64_neon_intrinsics_cflags): Move test source code
+	to new macro GCRY_AARCH64_NEON_INTRINSICS_TEST.
+	(gcry_cv_cc_ppc_altivec, gcry_cv_cc_ppc_altivec_cflags):
+	Move test source code to new macro GCRY_POWERPC_VECTOR_INTRINSICS_TEST.
+
+	crc-intel-pclmul: add AVX2 and AVX512 code paths.
+	+ commit c30788969d3f2760933eb8e7bf1271c8e010b6d1
+	* cipher/crc-intel-pclmul.c (crc32_consts_s, crc32_consts)
+	(crc24rfc2440_consts): Add k_ymm and k_zmm.
+	(crc32_reflected_bulk, crc32_bulk): Add VPCLMUL+AVX2 and VAES_VPCLMUL+AVX512
+	code paths; Add 'hwfeatures' parameter.
+	(_gcry_crc32_intel_pclmul, _gcry_crc24rfc2440_intel_pclmul): Add 'hwfeatures'
+	parameter.
+	* cipher/crc.c (CRC_CONTEXT) [USE_INTEL_PCLMUL]: Add 'hwfeatures'.
+	(_gcry_crc32_intel_pclmul, _gcry_crc24rfc2440_intel_pclmul): Add 'hwfeatures'
+	parameter.
+	(crc32_init, crc32rfc1510_init, crc24rfc2440_init) [USE_INTEL_PCLMUL]: Store
+	HW features to context.
+
+2025-07-30  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	poly1305-p10le: use '.rodata' section for read-only data.
+	+ commit 0c2d120e1124ee491712bbf93329c50a5b4d287f
+	* cipher/poly1305-p10le.s: Change '.data' section to '.rodata'.
+
+	Add missing abiversion tag for PowerPC assembly.
+	+ commit 5cdb3b08fdd44c70ba9d771d2135e296c7d95e2d
+	* cipher/chacha20-p10le-8x.s: Add abiversion tag.
+	* cipher/poly1305-p10le.s: Likewise.
+	* configure.ac (gcry_cv_gcc_inline_asm_ppc_altivec)
+	(gcry_cv_gcc_inline_asm_ppc_arch_3_00): Likewise.
+
+	Add missing machine tags for PowerPC assembly.
+	+ commit 660ed722aed20f274daf6972930b9714cacef2fb
+	* cipher/chacha20-p10le-8x.s: Add "any" machine tag.
+	* cipher/poly1305-p10le.s: Likewise.
+	* configure.ac (gcry_cv_gcc_inline_asm_ppc_altivec)
+	(gcry_cv_gcc_inline_asm_ppc_arch_3_00): Likewise.
+
+2025-07-30  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Provide the function prototype of __udiv_qrnnd.
+	+ commit b61a7661d017c37bbc867a61a75213986954796b
+	* mpi/longlong.h [__alpha] (__udiv_qrnnd): Add the prototype.
+	[__hppa] (__udiv_qrnnd): Likewise.
+	[__sparc__] (__udiv_qrnnd): Likewise.
+
+2025-07-21  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	blake2s-avx512: mark merged load as such.
+	+ commit 41c3747ebec07d8572668d231524666698c3b563
+	* cipher/blake2s-amd64-avx512.S (GATHER_MSG_8): Add comment
+	on 'vmovq' that it is merged load.
+
+	blake2s-avx512: remove duplicate load.
+	+ commit 0c48dcaad7554e16b1c233fc7c0176612f1c768c
+	* cipher/blake2s-amd64-avx512.S (GATHER_MSG_3): Remove
+	duplicate load which is already handled with 'vmovdqu32'
+	earlier.
+
+2025-07-04  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:ecc: Silence GCC 15 warning.
+	+ commit f06e90f4137a3dfaead69c21a8993c3530e0d913
+	* cipher/ecc-eddsa.c (_gcry_ecc_eddsa_ensure_compact): Initialize
+	ENC and ENCLEN before use.
+
+	cipher:gcm: Minor fix for buffer size.
+	+ commit e414699f5da7b54665c5496487beb68b753514f2
+	* cipher/cipher-internal.h (struct gcry_cipher_handle): Use
+	GCRY_GCM_BLOCK_LEN.
+
+2025-07-03  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:kem: Provide each enum constant as macro.
+	+ commit e9b1c3ec91a17c62f46e6ffd5909d0ed95a89121
+	src/gcrypt.h.in (GCRY_KEM_CM6688128F, GCRY_KEM_DHKEM25519)
+	(GCRY_KEM_DHKEM448, GCRY_KEM_DHKEMP256R1, GCRY_KEM_DHKEMP384R1)
+	(GCRY_KEM_DHKEMP521R1, GCRY_KEM_RAW_BP256, GCRY_KEM_RAW_BP384)
+	(GCRY_KEM_RAW_BP512, GCRY_KEM_RAW_MLKEM512, GCRY_KEM_RAW_MLKEM768)
+	(GCRY_KEM_RAW_MLKEM1024, GCRY_KEM_RAW_P256K1, GCRY_KEM_RAW_P256R1)
+	(GCRY_KEM_RAW_P384R1, GCRY_KEM_RAW_P521R1, GCRY_KEM_RAW_X25519)
+	(GCRY_KEM_RAW_X448, GCRY_KEM_SNTRUP761): New defines.
+
+	cipher:rsa: Fix missing initialization in generate_fips.
+	+ commit 292cb75a723c74b79ccd482c48620bd5f75c9e2e
+	* cipher/rsa.c (generate_fips): Initialize E, P and Q.
+
+	build: More changes to allow build with no Kyber.
+	+ commit d9acecb02a90f8a746d7a9349782a08b014c82ba
+	* cipher/Makefile.am (libcipher_la_SOURCES): Move kyber.c and kyber.h
+	to ...
+	(EXTRA_libcipher_la_SOURCES): ... here.
+	* cipher/kem.c: [USE_KYBER]: Only include kyber.h when USE_KYBER.
+	(_gcry_kem_genkey, _gcry_kem_encap, _gcry_kem_decap): [USE_KYBER]:
+	Enable Kyber when USE_KYBER.
+	* tests/keygen.c (check_kem_keys): [USE_KYBER]: Enable Kyber when
+	USE_KYBER.
+
+2025-07-02  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Allow build with no Kyber.
+	+ commit f2b7d7862ff91457966b7f14ce92bf15655766cd
+	* configure.ac (GCRYPT_PUBKEY_CIPHERS): It's kyber.lo.
+	* tests/Makefile.am (tests_bin): [USE_KYBER]: Add t-mlkem only when
+	USE_KYBER.
+	* tests/t-kem.c: Allow building with no Kyber.
+
+	tests: Add a test for Dilithium.
+	+ commit 95beae48241222336c5060a5969adb9b14afe25e
+	* tests/Makefile.am (tests_bin) [USE_DILITHIUM]: Add t-mldsa.
+	(EXTRA_DIST): Add t-mldsa.inp.
+	* tests/t-mldsa.c: New.
+	* tests/t-mldsa.inp: New.
+
+	cipher:dilithium: Support "no-prefix" flag for Dilithium testing.
+	+ commit 0a1fda8ce4d0111bd33049d87653985b5ef99b6f
+	* src/cipher.h (PUBKEY_FLAG_NO_PREFIX): New.
+	* cipher/pubkey-dilithium.c (mldsa_sign, mldsa_verify): Support
+	PUBKEY_FLAG_NO_PREFIX.
+	* cipher/pubkey-util.c (_gcry_pk_util_parse_flaglist): Support
+	PUBKEY_FLAG_NO_PREFIX.
+
+	cipher:dilithium: Add ML-DSA into libgcrypt pubkey interface.
+	+ commit 40c84d8a4c764631e50384d7d2a1898a88fe3c4f
+	* configure.ac (available_pubkey_ciphers): Add dilithium.
+	(USE_DILITHIUM): New.
+	* cipher/Makefile.am (EXTRA_libcipher_la_SOURCES): Add
+	pubkey-dilithium.c.
+	* cipher/pubkey-dilithium.c: New.
+	* cipher/pubkey.c (pubkey_list): Add _gcry_pubkey_spec_mldsa.
+	* src/cipher.h (_gcry_pubkey_spec_mldsa): New.
+	* src/gcrypt-int.h (enum gcry_mldsa_algos): New.
+	* src/gcrypt.h.in (GCRY_PK_MLDSA): New.
+
+	cipher:dilithium: Add dilithium functions for libgcrypt internal use.
+	+ commit 81a8332963e2a5581ee0e7d0393363e8b9015bbf
+	* cipher/dilithium.c (dilithium_keypair, dilithium_sign)
+	(dilithium_verify): New.
+	* cipher/dilithium.h: Likewise.
+
+2025-07-01  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:dilithium: List the dilithium implementation to Makefile.am.
+	+ commit bef89f9316c8f37c4806f757e9f38fc478fcc8db
+	* cipher/Makefile.am (EXTRA_DIST): Add dilithium-common.c and
+	dilithium-dep.c.
+	(EXTRA_libcipher_la_SOURCES): Add dilithium.c and dilithium.h.
+
+	cipher:dilithium: Don't include unused freeze function.
+	+ commit aeb775adfafd4520b1d67c5fc58f1e4c50ee174d
+	* cipher/dilithium-common.c (freeze): Remove.
+	* cipher/dilithium.c (freeze): Remove.
+
+	cipher:dilithium: Have cipher/dilithium.h.
+	+ commit cce9c02988c25f98b3097310963586bd3033f224
+	* cipher/dilithium.h: New.
+	* cipher/dilithium-common.c: Add static qualifier to functions.
+	* cipher/dilithium-dep.c: Move function delclarations from
+	dilithium.c and add undef-s.
+	* cipher/dilithium.c: Support use of DILITHIUM_MODE.
+
+	cipher:dilithium: Add DILITHIUM_INTERNAL_API_ONLY.
+	+ commit f78099b5a022b417aeea324ff94fdd2a1e5bf5b9
+	* cipher/dilithium-dep.c (crypto_sign_keypair_internal): New.
+	(crypto_sign_signature) [DILITHIUM_INTERNAL_API_ONLY]: Don't define.
+	(crypto_sign) [DILITHIUM_INTERNAL_API_ONLY]: Don't define.
+	(crypto_sign_verify) [DILITHIUM_INTERNAL_API_ONLY]: Don't define.
+	(crypto_sign_open) [DILITHIUM_INTERNAL_API_ONLY]: Don't define.
+	* cipher/dilithium.c: Define DILITHIUM_INTERNAL_API_ONLY for use
+	within libgcrypt.
+
+	cipher:dilithium: For _GCRYPT_IN_LIBGCRYPT, add *_close function.
+	+ commit 92f129fb9ddc7b076a1942983f593869264ea8d5
+	* cipher/dilithium-common.c (poly_uniform): Add stream128_close.
+	(poly_uniform_eta_2, poly_uniform_eta_4): Add stream256_close.
+	(poly_uniform_gamma1_17, poly_uniform_gamma1_19): Likewise.
+	* cipher/dilithium-dep.c (poly_challenge): Add shake256_close.
+	(crypto_sign_signature_internal): Likewise.
+	(crypto_sign_verify_internal): Likewise.
+	* cipher/dilithium.c [_GCRYPT_IN_LIBGCRYPT]: Add glue code
+	for shake128_* and shake256_*.
+
+	cipher:dilithium: Functions of poly for different DILITHIUM_MODE.
+	+ commit 28fb2e30790b07882b7ac2f5ccacd09e4e70de9c
+	* cipher/dilithium-common.c (decompose): Make it into...
+	(decompose_88, decompose_32): ... these two functions.
+	(make_hint): Make it into...
+	(make_hint_88, make_hint_32): ... these two functions.
+	(use_hint): Make it into...
+	(use_hint_88, use_hint_32): ... these two functions.
+	(poly_decompose): Make it into...
+	(poly_decompose_88, poly_decompose_32): ... these two functions.
+	(poly_make_hint): Make it into...
+	(poly_make_hint_88, poly_make_hint_32): ... these two functions.
+	(poly_use_hint): Make it into...
+	(poly_use_hint_88, poly_use_hint_32): ... these two functions.
+	(rej_eta): Make it into...
+	(rej_eta_2, rej_eta_4): ... these two functions.
+	(poly_uniform_eta): Make it into...
+	(poly_uniform_eta_2, poly_uniform_eta_4): ... these two functions.
+	(POLY_UNIFORM_ETA_NBLOCKS): Make it into...
+	(POLY_UNIFORM_ETA_NBLOCKS_2, POLY_UNIFORM_ETA_NBLOCKS_4): ... these
+	two macros.
+	(poly_uniform_gamma1): Make it into...
+	(poly_uniform_gamma1_17, poly_uniform_gamma1_19): ... these two
+	functions.
+	(POLY_UNIFORM_GAMMA1_NBLOCKS): Make it into...
+	(POLY_UNIFORM_GAMMA1_NBLOCKS_17, POLY_UNIFORM_GAMMA1_NBLOCKS_19):
+	... these two macros.
+	(polyeta_pack): Make it into...
+	(polyeta_pack_2, polyeta_pack_4): ... these two functions.
+	(polyeta_unpack): Make it into...
+	(polyeta_unpack_2, polyeta_unpack_4): ... these two functions.
+	(polyz_pack): Make it into...
+	(polyz_pack_17, polyz_pack_19): ... these two functions.
+	(polyz_unpack): Make it into...
+	(polyz_unpack_17, polyz_unpack_19): ... these two functions.
+	(polyw1_pack): Make it into...
+	(polyw1_pack_88, polyw1_pack_32): ... these two functions.
+
+	cipher:dilithium: Fix comment style.
+	+ commit a0bd76300f606c9b2d9a5720ed4643f89e90db8b
+	* cipher/dilithium.c: Fix comments.
+
+	cipher:dilithium: Make the implementation into three files.
+	+ commit 5cbf3180533dd84fb74c32e22e2f8fcecab90532
+	* cipher/dilithium-common.c: New.  Common part.
+	* cipher/dilithium-dep.c: New.  DILITHIUM_MODE dependent part.
+	* cipher/dilithium.c: Move functions and variables to two files.
+
+	cipher:dilithium: Export the external API only.
+	+ commit cc7d750be1c71c05f5e9fa0439edbc6dabff4410
+	* cipher/dilithium.c: Don't export other functions.
+
+2025-06-28  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher: Editorial clean up cipher/dilithium.c for headers.
+	+ commit cb15a5563ade6828312311682ddbdc0e5ae1eb6e
+	* cipher/dilithium.c: Clean up.
+
+	cipher: Add headers to the Dilithium implementation.
+	+ commit a7fdda036591dd9022e58b6613e25b23c8d9a50f
+	* cipher/dilithium.c: Add headers from the reference implementation.
+
+	cipher: Put the original Dilithium implementation.
+	+ commit 1b422366e2b3b5438713418b50f8a0a1abf8d365
+	* cipher/dilithium.c: Add the Dilithium reference implementation into
+	one file.
+
+2025-06-26  NIIBE Yutaka  <gniibe@fsij.org>
+
+	tests:common: Increse buffer size to allow input for PQC testing.
+	+ commit b945002e44ce79227599e723fc1faa961494062b
+	* tests/t-common.h (read_textline): Increase the buffer size.
+
+2025-06-25  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:kem:ecc: Support secp256k1 by KEM API.
+	+ commit 10c0ce88ba3fbba6b04ee6ded9d0f6ae15171d6b
+	* src/gcrypt.h.in (GCRY_KEM_RAW_P256K1): New.
+	* cipher/kem-ecc.c (algo_to_curve, algo_to_seckey_len): Support
+	GCRY_KEM_RAW_P256K1.
+
+2025-06-24  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher: Support random-override with PUBKEY_FLAG_BYTE_STRING.
+	+ commit cbefff5fcaa66dbd6ee652a9a5bc376b86d44d30
+	* cipher/pubkey-util.c (_gcry_pk_util_init_encoding_ctx): Initialize
+	RND and RNDLEN field.
+	(_gcry_pk_util_free_encoding_ctx): Release memory by RND field.
+	(_gcry_pk_util_data_to_mpi): Support optional "random-override".
+	* src/cipher.h (struct pk_encoding_ctx): Add RND and RNDLEN.
+
+	cipher: Add PUBKEY_FLAG_BYTE_STRING to support byte string data.
+	+ commit 3bb4a54f43876a169ce16b62bd73742374370db4
+	* cipher/pubkey-util.c (_gcry_pk_util_data_to_mpi): Add support for
+	PUBKEY_FLAG_BYTE_STRING.
+	* src/cipher.h (PUBKEY_FLAG_BYTE_STRING): New.
+
+2025-05-19  Collin Funk  <collin.funk1@gmail.com>
+
+	Fix missing simd-common-riscv.h in libgcrypt tarball.
+	+ commit b100dd25eb6821d58851c2b802bfe9ef2f441228
+	* cipher/Makefile.am (EXTRA_libcipher_la_SOURCES): Add
+	simd-common-riscv.h.
+
+2025-05-13  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi:ec: Least leak with k^(-1) for ECDSA.
+	+ commit 0bd4c77be6e04f5c8734926234742c3a2bb8fb18
+	* src/mpi.h (_gcry_mpi_assign_limb_space): Add.
+	(_gcry_mpih_mod_lli, _gcry_mpih_mul_lli): Add.
+	* cipher/ecc-ecdsa.c (_gcry_ecc_ecdsa_sign): Take care
+	about least leak with k^(-1).
+
+	mpi:ec: Use ec_mulm_lli in _gcry_mpi_ec_get_affine.
+	+ commit aa089ec89badcd74817e5008c66036b1e28674f5
+	* mpi/ec.c (_gcry_mpi_ec_get_affine): Fix for possible leak.
+
+2025-05-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix ungrammatical use of "allow to"
+	+ commit 93034d649124841a962e6e832afe4675d99abb7a
 
 
-2025-07-31  NIIBE Yutaka  <gniibe@fsij.org>
+2025-05-12  Collin Funk via Gcrypt-devel  <gcrypt-devel@gnupg.org>
+
+	Remove occurrences of old FSF postal address.
+	+ commit 67b8da4ef62734927e061327efa9a6f48616d114
+	* COPYING: Update to latest from Gnulib.
+	* COPYING.LIB: Likewise.
+	* doc/gpl.texi: Likewise.
+	* doc/lgpl.texi: Likewise.
+	* cipher/scrypt.c: Link to gnu.org instead of mentioning the old FSF
+	address.
+
+2025-05-03  Collin Funk  <collin.funk1@gmail.com>
+
+	tests: Fix link errors for t-thread-local.
+	+ commit 793eda7b258a562757b51c96044b103b638f1a63
+	On platforms where pthread_create is not in libc t-thread-local fails to
+	link.  Issue found on NetBSD 10.0.
+	* tests/Makefile.am (t_thread_local_LDADD): Add $(standard_ldadd),
+	$(GPG_ERROR_MT_LIBS), and @LDADD_FOR_TESTS_KLUDGE@.
+	(t_thread_local_CFLAGS): Add $(GPG_ERROR_MT_CFLAGS).
+
+	cipher:aria: Fix compiler error on NetBSD.
+	+ commit df684aca7407a4179771d79b5ef04ef8e4bedcc6
+	* cipher/aria.c (bswap32): Remove function that conflicts with system
+	definitions on NetBSD.
+	(aria_diff_byte): Use _gcry_bswap32.
+
+2025-04-21  NIIBE Yutaka  <gniibe@fsij.org>
 
 	Mark nonstring use cases with __nonstring__ attribute.
-	+ commit db55dfb74e64520a4a1c67ecb67d4a3f31979087
+	+ commit d5fb7cd9b3512ef5326638bb8930583fad127882
 	* src/gcrypt.h.in (_GCRY_GCC_ATTR_NONSTRING): New.
 	* cipher/chacha20.c (chacha20_keysetup): Use _GCRY_GCC_ATTR_NONSTRING.
 	* cipher/cipher-gcm-siv.c (gcm_siv_selftest): Likewise.
@@ -18,127 +899,119 @@
 	(check_ocb_cipher_largebuf_split, check_ocb_cipher_checksum): Likewise.
 	* tests/keygrip.c (key_grips): Likewise.
 
-2025-07-31  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+2025-04-08  NIIBE Yutaka  <gniibe@fsij.org>
 
-	poly1305-p10le: use '.rodata' section for read-only data.
-	+ commit c720dd8927a5c3f6b132527276fde2780067653e
-	* cipher/poly1305-p10le.s: Change '.data' section to '.rodata'.
+	mpi:ec: Set GCRYECC_FLAG_LEAST_LEAK, calling mpi_ec_mul_point_lli.
+	+ commit 32f848ef9dca726a0bfe1b895b93880522938aab
+	* mpi/ec.c (_gcry_mpi_ec_mul_point): Enable GCRYECC_FLAG_LEAST_LEAK
+	when calling mpi_ec_mul_point_lli.
 
-	Add missing abiversion tag for PowerPC assembly.
-	+ commit 013bcc18676dfe8f3b5a7da1ff9a2de97dfc4979
-	* cipher/chacha20-p10le-8x.s: Add abiversion tag.
-	* cipher/poly1305-p10le.s: Likewise.
-	* configure.ac (gcry_cv_gcc_inline_asm_ppc_altivec)
-	(gcry_cv_gcc_inline_asm_ppc_arch_3_00): Likewise.
+2025-04-07  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
 
-	Add missing machine tags for PowerPC assembly.
-	+ commit 210562de650d14701356633ad7a27809e7250c49
-	* cipher/chacha20-p10le-8x.s: Add "any" machine tag.
-	* cipher/poly1305-p10le.s: Likewise.
-	* configure.ac (gcry_cv_gcc_inline_asm_ppc_altivec)
-	(gcry_cv_gcc_inline_asm_ppc_arch_3_00): Likewise.
+	mpi/ec-nist: fix NIST-P224 failing on 32-bit architectures.
+	+ commit e34aa59b014eba6fd56d789e1b066c050f1e149a
+	* mpi/ec-nist.c (_gcry_mpi_ec_nist224_mod): Set output size
+	based on bit per limb.
 
-2025-07-31  NIIBE Yutaka  <gniibe@fsij.org>
+2025-03-28  NIIBE Yutaka  <gniibe@fsij.org>
 
-	mpi: Provide the function prototype of __udiv_qrnnd.
-	+ commit aced8fd2323650f4fc85fdedcb8a28bab4792372
-	* mpi/longlong.h [__alpha] (__udiv_qrnnd): Add the prototype.
-	[__hppa] (__udiv_qrnnd): Likewise.
-	[__sparc__] (__udiv_qrnnd): Likewise.
+	mpi:ec: Introduce ec_*_lli for Weierstrass curves to be less leaky.
+	+ commit d1c471c78d6f045a2ec53fd7bdc10308b6305096
+	* mpi/ec.c (ec_addm_lli, ec_subm_lli, ec_mulm_lli): New.
+	(dup_point_weierstrass_lli): New, using ec_*_lli.
+	(add_points_weierstrass_a): Use ec_*_lli.
+	(mpi_ec_mul_point_lli): Use dup_point_weierstrass_lli.
+	Remove mpi_point_resize.
 
-	cipher:ecc: Silence GCC 15 warning.
-	+ commit 7ebe90e5553b59f0e5c1421f293f1ca29948ef31
-	* cipher/ecc-eddsa.c (_gcry_ecc_eddsa_ensure_compact): Initialize
-	ENC and ENCLEN before use.
+	mpi:ec: Don't normalize the MPIs when GCRYECC_FLAG_LEAST_LEAK.
+	+ commit 4f56fd8c5e03f389a9f27a5e9206b9dfb49c92e3
+	* mpi/ec-nist.c (_gcry_mpi_ec_nist192_mod): Don't do MPN_NORMALIZE
+	when GCRYECC_FLAG_LEAST_LEAK.
+	(_gcry_mpi_ec_nist224_mod): Likewise.
+	(_gcry_mpi_ec_nist256_mod): Likewise.
+	(_gcry_mpi_ec_nist384_mod): Likewise.
+	(_gcry_mpi_ec_nist521_mod): Likewise.
+	* mpi/ec.c (ec_mod): Keep ->NLIMBS when GCRYECC_FLAG_LEAST_LEAK.
 
-2025-07-18  NIIBE Yutaka  <gniibe@fsij.org>
+	mpi:ec: Use affine coordinate for mpi_ec_mul_point_lli.
+	+ commit 0680408b37515db8437e18d6d2a1e973155b6565
+	* mpi/ec.c (add_points_weierstrass_a, add_points_edwards_a): New.
+	(mpi_ec_mul_point_lli): Use those routines directly.
 
-	cipher:rsa: Fix missing initialization in generate_fips.
-	+ commit 448693047fac163960f132528cff6a9d5e5444d6
-	* cipher/rsa.c (generate_fips): Initialize E, P and Q.
+2025-03-27  NIIBE Yutaka  <gniibe@fsij.org>
 
-	build: More changes to allow build with no Kyber.
-	+ commit d54d834eb43453bd4749df89fa709f6429d4d5d4
-	* cipher/Makefile.am (libcipher_la_SOURCES): Move kyber.c and kyber.h
-	to ...
-	(EXTRA_libcipher_la_SOURCES): ... here.
-	* cipher/kem.c: [USE_KYBER]: Only include kyber.h when USE_KYBER.
-	(_gcry_kem_genkey, _gcry_kem_encap, _gcry_kem_decap): [USE_KYBER]:
-	Enable Kyber when USE_KYBER.
-	* tests/keygen.c (check_kem_keys): [USE_KYBER]: Enable Kyber when
-	USE_KYBER.
+	mpi:ec: Resize when GCRYECC_FLAG_LEAST_LEAK.
+	+ commit 794b8e7378e84c344a0629af61b1154f8830aca4
+	* mpi/ec.c (ec_p_init): Also resize when GCRYECC_FLAG_LEAST_LEAK.
 
-	build: Allow build with no Kyber.
-	+ commit acd0b4347002d002bb4f141894e757da6df70c57
-	* configure.ac (GCRYPT_PUBKEY_CIPHERS): It's kyber.lo.
-	* tests/Makefile.am (tests_bin): [USE_KYBER]: Add t-mlkem only when
-	USE_KYBER.
-	* tests/t-kem.c: Allow building with no Kyber.
+	cipher:ecc: Introduce GCRYECC_FLAG_LEAST_LEAK.
+	+ commit 6419bd17f034bb7dad17bbd6c1f90c4c28cc4348
+	* src/cipher.h (GCRYECC_FLAG_LEAST_LEAK): New.
+	* cipher/ecc.c (ecc_generate): Use GCRYECC_FLAG_LEAST_LEAK.
+	(ecc_check_secret_key, ecc_sign, ecc_decrypt_raw): Likewise.
 
-2025-07-17  NIIBE Yutaka  <gniibe@fsij.org>
+	mpi:ec: Refactor _gcry_mpi_ec_mul_point.
+	+ commit 5e3dbfb8233d5849e5031c527aefed1ff460089c
+	* mpi/ec.c (montgomery_mul_point, mpi_ec_mul_point_lli): Factor out
+	from _gcry_mpi_ec_mul_point.
+	(_gcry_mpi_ec_mul_point): Use montgomery_mul_point and
+	mpi_ec_mul_point_lli.
 
-	cipher:kem: Provide each enum constant as macro.
-	+ commit f7e06f8a29fc4c347016fc32f0878ad6a3ffee8e
-	src/gcrypt.h.in (GCRY_KEM_CM6688128F, GCRY_KEM_DHKEM25519)
-	(GCRY_KEM_DHKEM448, GCRY_KEM_DHKEMP256R1, GCRY_KEM_DHKEMP384R1)
-	(GCRY_KEM_DHKEMP521R1, GCRY_KEM_RAW_BP256, GCRY_KEM_RAW_BP384)
-	(GCRY_KEM_RAW_BP512, GCRY_KEM_RAW_MLKEM512, GCRY_KEM_RAW_MLKEM768)
-	(GCRY_KEM_RAW_MLKEM1024, GCRY_KEM_RAW_P256K1, GCRY_KEM_RAW_P256R1)
-	(GCRY_KEM_RAW_P384R1, GCRY_KEM_RAW_P521R1, GCRY_KEM_RAW_X25519)
-	(GCRY_KEM_RAW_X448, GCRY_KEM_SNTRUP761): New defines.
+	mpi:ec: Keep A untouched in ec_get_a_is_pminus3.
+	+ commit d698ed5386e8e3be43296e77938f513261523503
+	* mpi/ec.c (ec_get_a_is_pminus3): Change the calculation
+	so that it keeps the MPI of A untouched.
 
-	cipher:kem:ecc: Support secp256k1 by KEM API.
-	+ commit d9ebc6c4e8b514704defd27f8115e1f6311da19c
-	* src/gcrypt.h.in (GCRY_KEM_RAW_P256K1): New.
-	* cipher/kem-ecc.c (algo_to_curve, algo_to_seckey_len): Support
-	GCRY_KEM_RAW_P256K1.
+	mpi:ec: Use ec_addm for ec_mul2.
+	+ commit 38cdb7fecc80c7f834bdd4fdc77e37f73ca8149f
+	* mpi/ec.c (ec_mul2): Use ec_addm.
 
-2025-05-19  Collin Funk via Gcrypt-devel  <gcrypt-devel@gnupg.org>
+	mpi:ec: Remove runtime check in ec_mod.
+	+ commit 16c6936c811a3af4c53ddd9526eac61569c436d0
+	* mpi/ec-inline.h (mpi_nbits_more_than): Remove.
+	* mpi/ec-nist.c (_gcry_mpi_ec_nist192_mod): Remove
+	runtime check for the size of W.
+	(_gcry_mpi_ec_nist224_mod): Likewise.
+	(_gcry_mpi_ec_nist256_mod): Likewise.
+	(_gcry_mpi_ec_nist384_mod): Likewise.
+	(_gcry_mpi_ec_nist521_mod): Likewise.
+	(ec_secp256k1_mod): Likewise.
 
-	Fix missing simd-common-riscv.h in libgcrypt tarball.
-	+ commit 62f84bb3040fc138f061032889574f82ce72a0bc
-	* cipher/Makefile.am (EXTRA_libcipher_la_SOURCES): Add
-	simd-common-riscv.h.
+2025-03-23  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
 
-2025-05-15  Collin Funk  <collin.funk1@gmail.com>
+	t-mpi-point: fix test failing in FIPS mode.
+	+ commit 058c2fab9aa8e0fda62f29ad0bbe253313d5c810
+	* tests/t-mpi-point.c (point_on_curve): Skip non-NIST test-vectors
+	in FIPS mode.
 
-	tests: Fix link errors for t-thread-local.
-	+ commit a47fb91496554316045a8a62f49b1a45aef25d4c
-	On platforms where pthread_create is not in libc t-thread-local fails to
-	link.  Issue found on NetBSD 10.0.
-	* tests/Makefile.am (t_thread_local_LDADD): Add $(standard_ldadd),
-	$(GPG_ERROR_MT_LIBS), and @LDADD_FOR_TESTS_KLUDGE@.
-	(t_thread_local_CFLAGS): Add $(GPG_ERROR_MT_CFLAGS).
+2025-03-21  NIIBE Yutaka  <gniibe@fsij.org>
 
-2025-05-12  Paul Eggert  <eggert@cs.ucla.edu>
+	mpi:ec: Use ec_addm to multiply with small integer.
+	+ commit 17d5d3262c148cf6b1e1040052984bca7169b064
+	* mpi/ec.c (dup_point_weierstrass): Use ec_addm instead of ec_mulm for
+	small integer.
 
-	Fix ungrammatical use of "allow to"
-	+ commit a1806adc5e7f7149f044c73176fa51b96d384b5b
+	mpi:ec: Use mpi_set_ui in _gcry_mpi_ec_mul_point.
+	+ commit 191c2340c4a6cdb35208d4cf78f4a399bcf2af8f
+	* mpi/ec.c (_gcry_mpi_ec_mul_point): mpi_set_ui to initialize 1.
 
+	mpi:ec: Avoid use mpi_const.
+	+ commit 522566b15a31a5352bb1605d3e4622e770cb7e59
+	* mpi/ec.c (_gcry_mpi_ec_mul_point): Use mpi_mul_ui.
+	(_gcry_mpi_ec_curve_point): Use mpi_mul_ui and mpi_add_ui.
+	Don't use mpi_const.
+	* tests/t-mpi-point.c (point_on_curve): Add Curve25519.
 
-2025-05-07  Werner Koch  <wk@gnupg.org>
+	mpi:ec: Don't use mpi_powm for small exponent.
+	+ commit 5052efed9f540add726bf604fbf70ee6a608b101
+	* mpi/ec.c (ec_pow3): Remove.
+	(_gcry_mpi_ec_curve_point): Don't use ec_pow3.
+	(dup_point_weierstrass): Use ec_pow2 twice for Z^4.
+	(add_points_weierstrass): Don't use ec_powm.
 
-	Release 1.11.1.
-	+ commit 81ce5321b1b79bde6dfdc3c164efb40c13cf656b
-
-
-	Disable new constants in gcrypt.h unless used internally.
-	+ commit 4d1a42d082aef66413f3ee822b0afc8b72cd7af5
-	* src/gcrypt.h.in: Disable unless _GCRYPT_IN_LIBGCRYPT is defined.
-
-2025-03-14  NIIBE Yutaka  <gniibe@fsij.org>
-
-	Merge commit '4876a1a4' into LIBGCRYPT-1.11-BRANCH.
-	+ commit a6267ad91dcdff34e2a7c0fc8fbfcfb90a04be59
-
-
-	cipher:kyber: No change ABI/API for gcry_kem_genkey.
-	+ commit f3bad2deb0246f9f70c0aaae5d210148d9090193
-	* src/gcrypt.h.in (gcry_kem_genkey): Revert the change.
-	* src/libgcrypt.def (gcry_kem_genkey): Likewise.
-	* src/libgcrypt.vers (gcry_kem_genkey): Likewise.
-	* src/visibility.c (gcry_kem_genkey): Likewise.
-	* src/visibility.h (gcry_kem_genkey): Likewise.
+	mpi:ec: Remove the minor optimization for the case of Z==1.
+	+ commit 53993003db9b9e90b518318ddb3bc67e61aa2735
+	* mpi/ec.c (add_points_weierstrass): Always multiply with Z^2.
 
 2025-03-13  NIIBE Yutaka  <gniibe@fsij.org>
 

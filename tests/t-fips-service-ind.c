@@ -1009,8 +1009,8 @@ check_cipher_o_s_e_d_c (int reject)
                     gpg_strerror (err));
 
           if (taglen != tv[tvidx].taglen)
-              fail ("gcry_cipher_info %d failed: taglen mismatch %d != %ld\n", tvidx,
-                    tv[tvidx].taglen, (long)taglen);
+              fail ("gcry_cipher_info %d failed: taglen mismatch %d != %zu\n", tvidx,
+                    tv[tvidx].taglen, taglen);
         }
 
       err = gcry_cipher_encrypt (h, out, MAX_DATA_LEN, pt, blklen);

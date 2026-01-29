@@ -90,6 +90,7 @@ static const struct hwcap_feature_map_s hwcap_features[] =
   {
     { HWCAP_ISA_IMAFDC,  HWF_RISCV_IMAFDC },
     { HWCAP_ISA('v'),    HWF_RISCV_V },
+    { HWCAP_ISA('b'),    HWF_RISCV_B },
     { HWCAP_ISA('b'),    HWF_RISCV_ZBB },
   };
 
@@ -190,6 +191,11 @@ detect_riscv_at_hwcap(void)
 #define HWF_RISCV_HWPROBE_EXT_ZBB           (1U << 4)
 #define HWF_RISCV_HWPROBE_EXT_ZBS           (1U << 5)
 #define HWF_RISCV_HWPROBE_EXT_ZBC           (1U << 7)
+#define HWF_RISCV_HWPROBE_EXT_ZVKB          (1U << 19)
+#define HWF_RISCV_HWPROBE_EXT_ZVKG          (1U << 20)
+#define HWF_RISCV_HWPROBE_EXT_ZVKNED        (1U << 21)
+#define HWF_RISCV_HWPROBE_EXT_ZVKNHA        (1U << 22)
+#define HWF_RISCV_HWPROBE_EXT_ZVKNHB        (1U << 23)
 #define HWF_RISCV_HWPROBE_EXT_ZICOND        (U64_C(1) << 35)
 
 #define HWF_RISCV_HWPROBE_IMA_FDC (HWF_RISCV_HWPROBE_IMA_FD \
@@ -211,6 +217,14 @@ static const struct hwprobe_feature_map_s hwprobe_features[] =
     { HWF_RISCV_HWPROBE_IMA_V,       HWF_RISCV_V },
     { HWF_RISCV_HWPROBE_EXT_ZBB,     HWF_RISCV_ZBB },
     { HWF_RISCV_HWPROBE_EXT_ZBC,     HWF_RISCV_ZBC },
+    { HWF_RISCV_HWPROBE_EXT_ZBA
+      | HWF_RISCV_HWPROBE_EXT_ZBB
+      | HWF_RISCV_HWPROBE_EXT_ZBS,   HWF_RISCV_B },
+    { HWF_RISCV_HWPROBE_EXT_ZVKB,    HWF_RISCV_ZVKB },
+    { HWF_RISCV_HWPROBE_EXT_ZVKG,    HWF_RISCV_ZVKG },
+    { HWF_RISCV_HWPROBE_EXT_ZVKNED,  HWF_RISCV_ZVKNED },
+    { HWF_RISCV_HWPROBE_EXT_ZVKNHA,  HWF_RISCV_ZVKNHA },
+    { HWF_RISCV_HWPROBE_EXT_ZVKNHB,  HWF_RISCV_ZVKNHB },
   };
 
 static int
@@ -283,6 +297,44 @@ detect_riscv_hwf_by_toolchain (void)
 		  : "r" (321));
 
     features |= HWF_RISCV_ZBB;
+  }
+#endif
+
+#if defined(__riscv_zba) && __riscv_zba >= 1000000 && \
+    defined(__riscv_zbb) && __riscv_zbb >= 1000000 && \
+    defined(__riscv_zbs) && __riscv_zbs >= 1000000 && \
+    defined(HAVE_GCC_INLINE_ASM_RISCV)
+  {
+    unsigned int tmp = 0;
+
+    /* Early test for Zba instructions to detect faulty toolchain
+     * configuration. */
+    asm volatile (".option push;\n\t"
+		  ".option arch, +zba;\n\t"
+		  "sh2add %0, %1, %2;\n\t"
+		  ".option pop;\n\t"
+		  : "=r" (tmp)
+		  : "r" (321), "r" (123));
+
+    /* Early test for Zbb instructions to detect faulty toolchain
+     * configuration. */
+    asm volatile (".option push;\n\t"
+		  ".option arch, +zbb;\n\t"
+		  "cpop %0, %1;\n\t"
+		  ".option pop;\n\t"
+		  : "=r" (tmp)
+		  : "r" (321));
+
+    /* Early test for Zbs instructions to detect faulty toolchain
+     * configuration. */
+    asm volatile (".option push;\n\t"
+		  ".option arch, +zbs;\n\t"
+		  "bclr %0, %1, %2;\n\t"
+		  ".option pop;\n\t"
+		  : "=r" (tmp)
+		  : "r" (321), "r" (15));
+
+    features |= HWF_RISCV_B;
   }
 #endif
 

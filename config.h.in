@@ -96,6 +96,12 @@
 /* Defined if the mlock() call does not work */
 #undef HAVE_BROKEN_MLOCK
 
+/* Define to 1 if __riscv_vaes*_vs intrinsics are broken */
+#undef HAVE_BROKEN_VAES_VS_INTRINSIC
+
+/* Define to 1 if __riscv_vsha2cl intrinsics are broken */
+#undef HAVE_BROKEN_VSHA2CL_INTRINSIC
+
 /* Defined if compiler has '__builtin_bswap32' intrinsic */
 #undef HAVE_BUILTIN_BSWAP32
 
@@ -137,6 +143,14 @@
 /* Defined if underlying compiler supports PowerPC AltiVec/VSX/crypto
    intrinsics with extra GCC flags */
 #undef HAVE_COMPATIBLE_CC_PPC_ALTIVEC_WITH_CFLAGS
+
+/* Defined if underlying compiler supports RISC-V vector cryptography
+   intrinsics */
+#undef HAVE_COMPATIBLE_CC_RISCV_VECTOR_CRYPTO_INTRINSICS
+
+/* Defined if underlying compiler supports RISC-V vector cryptography
+   intrinsics with extra GCC flags */
+#undef HAVE_COMPATIBLE_CC_RISCV_VECTOR_CRYPTO_INTRINSICS_WITH_CFLAGS
 
 /* Defined if underlying compiler supports RISC-V vector intrinsics */
 #undef HAVE_COMPATIBLE_CC_RISCV_VECTOR_INTRINSICS
@@ -517,8 +531,7 @@
 /* List of available public key cipher algorithms */
 #undef LIBGCRYPT_PUBKEY_CIPHERS
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* defined to the name of the strong random device */
@@ -609,6 +622,9 @@
 
 /* Defined if this module should be included */
 #undef USE_DES
+
+/* Defined if this module should be included */
+#undef USE_DILITHIUM
 
 /* Defined if this module should be included */
 #undef USE_DSA
