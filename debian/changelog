@@ -1,3 +1,9 @@
+libgcrypt20 (1.12.1-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- meik michalke <meik.michalke@gnupg.com>  Tue, 24 Feb 2026 11:21:29 +0100
+
 libgcrypt20 (1.12.0-1) unstable; urgency=medium
 
   * New upstream release
