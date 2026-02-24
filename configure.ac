@@ -31,7 +31,7 @@ min_automake_version="1.14"
 m4_define([mym4_package],[libgcrypt])
 m4_define([mym4_major], [1])
 m4_define([mym4_minor], [12])
-m4_define([mym4_micro], [0])
+m4_define([mym4_micro], [1])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -57,7 +57,7 @@ AC_INIT([mym4_package],[mym4_version],[https://bugs.gnupg.org])
 #   (No interfaces changed:                   REVISION++)
 LIBGCRYPT_LT_CURRENT=27
 LIBGCRYPT_LT_AGE=7
-LIBGCRYPT_LT_REVISION=0
+LIBGCRYPT_LT_REVISION=1
 ################################################
 
 AC_SUBST(LIBGCRYPT_LT_CURRENT)
@@ -1830,6 +1830,25 @@ fi
 
 
 #
+# Check whether compiler defines __x86_64__ macro (amd64 or x32)
+#
+AC_CACHE_CHECK([whether compiler defines __x86_64__ macro],
+  [gcry_cv_compiler_defines__x86_64__],
+  [if test "$mpi_cpu_arch" != "x86" ||
+      test "$try_asm_modules" != "yes" ; then
+    gcry_cv_compiler_defines__x86_64__="n/a"
+  else
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+      #ifndef __x86_64__
+      # error "Architecture is not x86_64"
+      #endif
+    ]])],
+    [gcry_cv_compiler_defines__x86_64__=yes],
+    [gcry_cv_compiler_defines__x86_64__=no])
+  fi])
+
+
+#
 # Check whether GCC assembler supports features needed for our i386/amd64
 # implementations
 #
@@ -1859,7 +1878,9 @@ if test $amd64_as_feature_detection = yes; then
           [gcry_cv_gcc_x86_platform_as_ok=yes])
         fi])
   if test "$gcry_cv_gcc_x86_platform_as_ok" = "yes" &&
-     test "$ac_cv_sizeof_unsigned_long" = "8"; then
+     test "$gcry_cv_compiler_defines__x86_64__" = "yes" &&
+     (test "$ac_cv_sizeof_unsigned_long" = "4" ||
+      test "$ac_cv_sizeof_unsigned_long" = "8"); then
     AC_DEFINE(HAVE_COMPATIBLE_GCC_AMD64_PLATFORM_AS,1,
               [Defined if underlying assembler is compatible with amd64 assembly implementations])
   fi
