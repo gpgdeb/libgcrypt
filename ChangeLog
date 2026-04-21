@@ -1,3 +1,65 @@
+2026-04-15  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:kem:ecc: Raise an error by validating a point on curve.
+	+ commit f95ba3c063a5e67e895b93564164593890b5063c
+	* cipher/ecc-ecdh.c (_gcry_ecc_curve_mul_point): Add new argument
+	ENABLE_MONT_CHECK to enable check for Montgomery curve.  Add point
+	validation.  Raise GPG_ERR_INV_DATA on failure.
+	(_gcry_ecc_mul_point): Call _gcry_ecc_curve_mul_point with Montgomery
+	curve check disabled.
+	* cipher/kem-ecc.c (ecc_mul_point): Call _gcry_ecc_curve_mul_point
+	with Montgomery curve check enabled.
+	* src/gcrypt-int.h (_gcry_ecc_curve_mul_point): Change the proto.
+
+	cipher:ecc: Fix decoding a point on Montgomery curve.
+	+ commit 2d3d732c9bf87cc10729f69678dd9e6862f99fa3
+	* cipher/ecc-misc.c (_gcry_ecc_mont_decodepoint): Fix the padding
+	mistake and add updating RAWMPILEN.
+
+2026-04-13  NIIBE Yutaka  <gniibe@fsij.org>
+	    Thai Duong  <thai@calif.io>
+
+	cipher:dilithium: Check the label length by caller.
+	+ commit 905e00f046a71e5670517779afaf85a354952832
+	* cipher/dilithium.h (dilithium_keypair, dilithium_sign)
+	(dilithium_verify): Return gpg_err_code_t.
+	* cipher/dilithium.c (dilithium_keypair): Return gpg_err_code_t.
+	(dilithium_sign, dilithium_verify): Ditto.  Check CTXLEN.
+	* cipher/pubkey-dilithium.c (mldsa_generate): Follow the change.
+	(mldsa_sign, mldsa_verify): Likewise.
+
+2026-04-09  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:dilithium: Fix the glue of libgcrypt.
+	+ commit 5a875908cb95407e12c7d206e31c287b0e06dbca
+	* cipher/dilithium.h (dilithium_sign, dilithium_verify): Define the
+	macro correctly so that we can keep using _gcry namespace for internal
+	functions.
+
+2026-04-07  NIIBE Yutaka  <gniibe@fsij.org>
+
+	tests:kem: Don't emit a message each time, but once.
+	+ commit 460695d0538b2d9df6511e7ae686469bcecc686a
+	* tests/t-kem.c (test_kem_sntrup761, test_kem_mceliece6688128f)
+	(test_kem_mlkem512, test_kem_mlkem768, test_kem_mlkem1024): Don't emit
+	message here.
+	(check_kem): But here, before the loop.
+
+2026-03-24  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:rsa: Fix the dead-code of stronger_key_check.
+	+ commit 39aca53012e098c1c049e28d759a051e173709ec
+	* cipher/rsa.c (check_secret_key): Rename from stronger_key_check
+	to be enabled with ENABLE_STRONGER_CHECK.
+
+2026-03-16  Werner Koch  <wk@gnupg.org>
+
+	Add the commit-id to the VERSION file.
+	+ commit 1f85852506bd8765a00a34d90822c6be4630c587
+	* compat/compat.c (_gcry_compat_identification): Also use here.
+	* configure.ac (mym4_commitid): New.
+	(BUILD_COMMITID): New ac_define.
+
 2026-02-20  Werner Koch  <wk@gnupg.org>
 
 	Release 1.12.1.
