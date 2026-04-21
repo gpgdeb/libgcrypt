@@ -11,7 +11,10 @@
 /* Defined if --disable-asm was used to configure */
 #undef ASM_DISABLED
 
-/* GIT commit id revision used to build this package */
+/* Git full commit id used to build this package */
+#undef BUILD_COMMITID
+
+/* GIT shortened commit id used to build this package */
 #undef BUILD_REVISION
 
 /* The time this package was configured for a build */
