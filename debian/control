@@ -4,10 +4,11 @@ Priority: optional
 Maintainer: GnuPG Maintainers <package-maintainers@gnupg.org>
 Build-Depends:
  debhelper-compat (= 13),
- libgpg-error-dev (>= 1.49),
+ automake (>= 1.14),
+ libgpg-error-dev (>= 1.56),
 Build-Depends-Indep:
- libgpg-error-mingw-w64-dev (>= 1.49),
- mingw-w64,
+ libgpg-error-mingw-w64-dev (>= 1.56),
+ mingw-w64 (>= 11.0.1),
  texinfo,
  texlive-latex-base,
  texlive-plain-generic,
