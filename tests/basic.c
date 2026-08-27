@@ -9475,6 +9475,65 @@ check_ocb_cipher_largebuf (int algo, int keylen, const char *tagexpect)
 
 
 static void
+ocb_aad_tag (const unsigned char key[16], const unsigned char nonce[12],
+             const unsigned char *aad, size_t len0, size_t len1,
+             unsigned char tag[16])
+{
+  gcry_cipher_hd_t hd;
+  gcry_error_t err;
+  unsigned char out[16];
+
+  err = gcry_cipher_open (&hd, GCRY_CIPHER_AES, GCRY_CIPHER_MODE_OCB, 0);
+  if (!err)
+    err = gcry_cipher_setkey (hd, key, 16);
+  if (!err)
+    err = gcry_cipher_setiv (hd, nonce, 12);
+  if (!err)
+    err = gcry_cipher_authenticate (hd, aad, len0);
+  if (!err && len1)
+    err = gcry_cipher_authenticate (hd, aad + len0, len1);
+  if (!err)
+    err = gcry_cipher_final (hd);
+  if (!err)
+    err = gcry_cipher_encrypt (hd, out, sizeof out, aad, sizeof out);
+  if (!err)
+    err = gcry_cipher_gettag (hd, tag, 16);
+  gcry_cipher_close (hd);
+  if (err)
+    fail ("ocb aad tablewrap: %s\n", gpg_strerror (err));
+}
+
+
+static void
+check_ocb_cipher_aad_tablewrap (void)
+{
+  static const unsigned char key[16] _GCRY_GCC_ATTR_NONSTRING =
+    "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f";
+  static const unsigned char nonce[12] _GCRY_GCC_ATTR_NONSTRING =
+    "\xbb\xaa\x99\x88\x77\x66\x55\x44\x33\x22\x11\x0d";
+  const size_t aadlen = (size_t)65536 * 16;   /* fills one OCB L-table wrap */
+  unsigned char tag_ref[16], tag_split[16];
+  unsigned char *aad;
+  size_t i;
+
+  if (verbose)
+    fprintf (stderr, "  checking OCB AAD split across L-table boundary\n");
+
+  aad = xmalloc (aadlen);
+  for (i = 0; i < aadlen; i++)
+    aad[i] = (unsigned char)i;
+
+  ocb_aad_tag (key, nonce, aad, aadlen, 0, tag_ref);
+  ocb_aad_tag (key, nonce, aad, aadlen - 15, 15, tag_split);
+
+  if (memcmp (tag_ref, tag_split, 16))
+    fail ("ocb aad tablewrap: split tag mismatch\n");
+
+  xfree (aad);
+}
+
+
+static void
 check_ocb_cipher_splitaad (void)
 {
   const char t_nonce[] = ("BBAA9988776655443322110D");
@@ -9766,6 +9825,7 @@ check_ocb_cipher (void)
 
   /* Check that the AAD data is correctly buffered.  */
   check_ocb_cipher_splitaad ();
+  check_ocb_cipher_aad_tablewrap ();
 }
 
 
@@ -12606,6 +12666,10 @@ cipher_cbc_bulk_test (int cipher_algo)
       return -1;
     }
 
+  if (verbose)
+    fprintf (stderr, "    checking CBC bulk encryption for %s [%i]\n",
+             cipher, cipher_algo);
+
   memsize = (blocksize * 2) + (blocksize * nblocks * 3) + 16 + (blocksize + 1);
 
   mem = xcalloc (1, memsize);
@@ -12846,6 +12910,10 @@ cipher_cfb_bulk_test (int cipher_algo)
       return -1;
     }
 
+  if (verbose)
+    fprintf (stderr, "    checking CFB bulk encryption for %s [%i]\n",
+             cipher, cipher_algo);
+
   memsize = (blocksize * 2) + (blocksize * nblocks * 3) + 16 + (blocksize + 1);
 
   mem = xcalloc (1, memsize);
@@ -13074,6 +13142,10 @@ cipher_ctr_bulk_test (int cipher_algo)
       fail ("%s-CTR-%d test failed (key too short)", cipher, blocksize * 8);
       return -1;
     }
+
+  if (verbose)
+    fprintf (stderr, "    checking CTR bulk encryption for %s [%i]\n",
+             cipher, cipher_algo);
 
   memsize = (blocksize * 2) + (blocksize * nblocks * 4) + 16 + (blocksize + 1);
 
@@ -13380,6 +13452,132 @@ cipher_ctr_bulk_test (int cipher_algo)
 }
 
 
+/* Regression test for the 16-bit-overflow split in bulk CTR encryption: a
+   single call spanning >= 0x10000 blocks must not reuse keystream nor drop the
+   counter carry.  Reference keystream is built from ECB with a full-width
+   byte-wise counter, correct independent of the split logic. */
+static int
+cipher_ctr16_overflow_test (int cipher_algo)
+{
+  static const unsigned int low16_start[] =
+    { 0, 1, 0x7fff, 0x8000, 0xfffe, 0xffff };
+  const size_t nblocks = 2 * 0x10000 + 5;
+  int blocksize;
+  const char *cipher;
+  gcry_cipher_hd_t hd_ecb = NULL;
+  gcry_cipher_hd_t hd_ctr = NULL;
+  unsigned char *plaintext = NULL;
+  unsigned char *reftext = NULL;
+  unsigned char *enctext = NULL;
+  unsigned char iv[16];
+  unsigned char getctr[17];
+  size_t buflen, i, j, tc;
+  unsigned int keylen;
+  static const unsigned char key[32] = {
+      0x06,0x9A,0x00,0x7F,0xC7,0x6A,0x45,0x9F,
+      0x98,0xBA,0xF9,0x17,0xFE,0xDF,0x95,0x21,
+      0x06,0x9A,0x00,0x7F,0xC7,0x6A,0x45,0x9F,
+      0x98,0xBA,0xF9,0x17,0xFE,0xDF,0x95,0x21
+    };
+
+  if (gcry_cipher_test_algo (cipher_algo))
+    return 0;
+  blocksize = gcry_cipher_get_algo_blklen (cipher_algo);
+  if (blocksize < 8 || blocksize > 16)
+    return 0;
+  cipher = gcry_cipher_algo_name (cipher_algo);
+  keylen = gcry_cipher_get_algo_keylen (cipher_algo);
+  if (keylen > sizeof(key))
+    return 0;
+
+  if (verbose)
+    fprintf (stderr, "    checking CTR 16-bit overflow for %s [%i]\n",
+             cipher, cipher_algo);
+
+  buflen = nblocks * (size_t)blocksize;
+  plaintext = xmalloc (buflen);
+  reftext = xmalloc (buflen);
+  enctext = xmalloc (buflen);
+
+  if (gcry_cipher_open (&hd_ecb, cipher_algo, GCRY_CIPHER_MODE_ECB, 0)
+      || gcry_cipher_open (&hd_ctr, cipher_algo, GCRY_CIPHER_MODE_CTR, 0)
+      || gcry_cipher_setkey (hd_ecb, key, keylen)
+      || gcry_cipher_setkey (hd_ctr, key, keylen))
+    {
+      fail ("%s-CTR-%d ctr16 test failed (setup)", cipher, blocksize * 8);
+      goto leave;
+    }
+
+  for (i = 0; i < buflen; i++)
+    plaintext[i] = (unsigned char)i;
+
+  for (tc = 0; tc < DIM (low16_start); tc++)
+    {
+      unsigned int low16 = low16_start[tc];
+
+      /* Fixed non-zero upper bytes exercise carry past the low 16 bits. */
+      memset (iv, 0x5a, blocksize);
+      iv[blocksize - 3] = 0x40;
+      iv[blocksize - 2] = (low16 >> 8) & 0xff;
+      iv[blocksize - 1] = low16 & 0xff;
+
+      if (gcry_cipher_setctr (hd_ctr, iv, blocksize))
+        {
+          fail ("%s-CTR-%d ctr16 test failed (setctr, low16=0x%04x)",
+                cipher, blocksize * 8, low16);
+          goto leave;
+        }
+
+      /* iv ends holding start + nblocks, the reference final counter. */
+      for (i = 0; i < buflen; i += blocksize)
+        {
+          memcpy (&reftext[i], iv, blocksize);
+          for (j = blocksize; j > 0; j--)
+            if (++iv[j - 1])
+              break;
+        }
+      if (gcry_cipher_encrypt (hd_ecb, reftext, buflen, NULL, 0))
+        {
+          fail ("%s-CTR-%d ctr16 test failed (ecb, low16=0x%04x)",
+                cipher, blocksize * 8, low16);
+          goto leave;
+        }
+      for (i = 0; i < buflen; i++)
+        reftext[i] ^= plaintext[i];
+
+      if (gcry_cipher_encrypt (hd_ctr, enctext, buflen, plaintext, buflen))
+        {
+          fail ("%s-CTR-%d ctr16 test failed (ctr, low16=0x%04x)",
+                cipher, blocksize * 8, low16);
+          goto leave;
+        }
+      if (memcmp (enctext, reftext, buflen))
+        {
+          fail ("%s-CTR-%d ctr16 test failed (keystream, low16=0x%04x)",
+                cipher, blocksize * 8, low16);
+          goto leave;
+        }
+
+      if (gcry_cipher_ctl (hd_ctr, PRIV_CIPHERCTL_GET_COUNTER, getctr,
+                           blocksize + 1)
+          || getctr[0] != blocksize
+          || memcmp (getctr + 1, iv, blocksize))
+        {
+          fail ("%s-CTR-%d ctr16 test failed (counter, low16=0x%04x)",
+                cipher, blocksize * 8, low16);
+          goto leave;
+        }
+    }
+
+leave:
+  gcry_cipher_close (hd_ecb);
+  gcry_cipher_close (hd_ctr);
+  xfree (plaintext);
+  xfree (reftext);
+  xfree (enctext);
+  return 0;
+}
+
 
 static void
 check_ciphers (void)
@@ -13544,6 +13742,20 @@ check_ciphers (void)
 
 
 static void
+check_ctr16_overflow (void)
+{
+  /* One 128-bit and one 64-bit block cipher cover both blocksize code paths
+     in _gcry_cipher_ctr_encrypt_ctx. */
+  if (verbose)
+    fprintf (stderr, "  Starting CTR 16-bit overflow checks.\n");
+  cipher_ctr16_overflow_test (GCRY_CIPHER_AES);
+  cipher_ctr16_overflow_test (GCRY_CIPHER_BLOWFISH);
+  if (verbose)
+    fprintf (stderr, "  Completed CTR 16-bit overflow checks.\n");
+}
+
+
+static void
 check_cipher_modes(void)
 {
   if (verbose)
@@ -13553,6 +13765,8 @@ check_cipher_modes(void)
   check_aes128_cbc_cts_cipher ();
   check_cbc_mac_cipher ();
   check_ctr_cipher ();
+  check_ctr16_overflow ();
+
   check_cfb_cipher ();
   check_ofb_cipher ();
   check_ccm_cipher ();
@@ -16159,6 +16373,68 @@ out:
   gcry_mac_close (hd);
 }
 
+#if USE_GOST28147
+static void
+check_mac_gost_imit_verify_len (void)
+{
+  static const char key[32] _GCRY_GCC_ATTR_NONSTRING =
+    "\x9d\x05\xb7\x9e\x90\xca\xd0\x0a\x2c\xda\xd2\x2e\xf4\xe8\x6f\x5c"
+    "\xf5\xdc\x37\x68\x19\x85\xb3\xbf\xaa\x18\xc1\xc3\x05\x0a\x91\xa2";
+  static const char data[16] _GCRY_GCC_ATTR_NONSTRING =
+    "\xb5\xa1\xf0\xe3\xce\x2f\x02\x1d\x67\x61\x94\x34\x5c\x41\xe3\x6e";
+  static const size_t bad_lens[] = { 9, 16, 64, 4096 };
+  unsigned char tag[8];
+  unsigned char big[4096];
+  size_t taglen = sizeof (tag);
+  gcry_mac_hd_t hd;
+  gcry_error_t err;
+  unsigned int i;
+
+  if (gcry_mac_test_algo (GCRY_MAC_GOST28147_IMIT))
+    return;
+
+  if (verbose)
+    fprintf (stderr, "  checking GOST28147 IMIT verify length handling\n");
+
+  err = gcry_mac_open (&hd, GCRY_MAC_GOST28147_IMIT, 0, NULL);
+  if (err)
+    {
+      fail ("gost imit verify: gcry_mac_open failed: %s\n", gpg_strerror (err));
+      return;
+    }
+
+  if (!(err = gcry_mac_setkey (hd, key, sizeof (key))))
+    err = gcry_mac_write (hd, data, sizeof (data));
+  if (!err)
+    err = gcry_mac_read (hd, tag, &taglen);
+  if (err || taglen != sizeof (tag))
+    {
+      fail ("gost imit verify: setup failed: %s\n", gpg_strerror (err));
+      goto out;
+    }
+
+  err = gcry_mac_verify (hd, tag, sizeof (tag));
+  if (err)
+    fail ("gost imit verify: 8-byte tag rejected: %s\n", gpg_strerror (err));
+  err = gcry_mac_verify (hd, tag, 4);
+  if (err)
+    fail ("gost imit verify: 4-byte tag rejected: %s\n", gpg_strerror (err));
+
+  memset (big, 0, sizeof (big));
+  memcpy (big, tag, sizeof (tag));
+  for (i = 0; i < DIM (bad_lens); i++)
+    {
+      err = gcry_mac_verify (hd, big, bad_lens[i]);
+      if (gcry_err_code (err) != GPG_ERR_INV_LENGTH)
+        fail ("gost imit verify: oversized len %d not rejected: %s\n",
+              (int)bad_lens[i], gpg_strerror (err));
+    }
+
+out:
+  gcry_mac_close (hd);
+}
+#endif /* USE_GOST28147 */
+
 static void
 check_mac (void)
 {
@@ -17109,6 +17385,10 @@ check_mac (void)
 		     algos[i].iv, algos[i].iv ? strlen(algos[i].iv) : 0,
 		     algos[i].expect, 1);
     }
+
+#if USE_GOST28147
+  check_mac_gost_imit_verify_len ();
+#endif
 
   if (verbose)
     fprintf (stderr, "Completed MAC checks.\n");

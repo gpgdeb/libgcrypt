@@ -1,7 +1,7 @@
 This is gcrypt.info, produced by makeinfo version 6.8 from gcrypt.texi.
 
-This manual is for Libgcrypt version 1.12.2 and was last updated 24
-September 2025.  Libgcrypt is GNU's library of cryptographic building
+This manual is for Libgcrypt version 1.12.3 and was last updated 25
+August 2026.  Libgcrypt is GNU's library of cryptographic building
 blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
@@ -25,8 +25,8 @@ File: gcrypt.info,  Node: Top,  Next: Introduction,  Up: (dir)
 The Libgcrypt Library
 *********************
 
-This manual is for Libgcrypt version 1.12.2 and was last updated 24
-September 2025.  Libgcrypt is GNU's library of cryptographic building
+This manual is for Libgcrypt version 1.12.3 and was last updated 25
+August 2026.  Libgcrypt is GNU's library of cryptographic building
 blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
@@ -499,6 +499,9 @@ are
 'intel-vaes-vpclmul'
 'intel-avx512'
 'intel-gfni'
+'intel-sha512'
+'intel-sm3'
+'intel-sm4'
 'arm-neon'
 'arm-aes'
 'arm-sha1'
@@ -2573,9 +2576,9 @@ known:
      If supported by the algorithm and curve, the 'comp' flag requests
      that points are returned in compact (compressed) representation.
      The 'nocomp' flag requests that points are returned with full
-     coordinates.  The default depends on the the algorithm and curve.
-     The compact representation requires a small overhead before a point
-     can be used but halves the size of a public key to be conveyed.  If
+     coordinates.  The default depends on the algorithm and curve.  The
+     compact representation requires a small overhead before a point can
+     be used but halves the size of a public key to be conveyed.  If
      'comp' is used with the "EdDSA" algorithm, the key generation
      prefixes the public key with a '0x40' byte.
 
@@ -3691,7 +3694,7 @@ memory, three fast convenience functions are available for this task:
      message digest from several buffers.  This function does not
      require a context and immediately returns the message digest of the
      data described by IOV and IOVCNT.  DIGEST must be allocated by the
-     caller, large enough to hold the message digest yielded by the the
+     caller, large enough to hold the message digest yielded by the
      specified algorithm ALGO.  This required size may be obtained by
      using the function 'gcry_md_get_algo_dlen'.
 
