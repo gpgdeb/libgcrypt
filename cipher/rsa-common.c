@@ -80,7 +80,7 @@ _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
   size_t n;
   unsigned char *p;
 
-  if (valuelen + 7 > nframe || !nframe)
+  if (nframe <= 11 || valuelen > nframe - 11)
     {
       /* Can't encode a VALUELEN value in a NFRAME bytes frame.  */
       return GPG_ERR_TOO_SHORT; /* The key is too short.  */
@@ -259,6 +259,12 @@ _gcry_rsa_pkcs1_decode_for_enc (unsigned char **r_result, size_t *r_resultlen,
     log_printhex ("value extracted from PKCS#1 block type 2 encoded data",
                   *r_result, *r_resultlen);
 
+  /* Check the length of PS is at least 8.  */
+  n0 -= ct_is_zero (frame[0]);  /* First 0x00 */
+  n0 -= 1;                      /* 0x02 */
+  n0 -= ct_is_zero (not_found); /* Second 0x00 */
+  failed |= ((n0 - 8) >> (sizeof (size_t)*8 - 1));
+
   return (0U - failed) & GPG_ERR_ENCODING_PROBLEM;
 }
 
@@ -435,7 +441,7 @@ mgf1 (unsigned char *output, size_t outlen, unsigned char *seed, size_t seedlen,
   gcry_md_hd_t hd;
   gcry_err_code_t err;
 
-  err = _gcry_md_open (&hd, algo, 0);
+  err = _gcry_md_open_internal (&hd, algo, 0, 0);
   if (err)
     return err;
 
@@ -528,6 +534,10 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
     }
 
   hlen = _gcry_md_get_algo_dlen (algo);
+
+  /* Public key check against hash algo (it's implicit in rfc-3447/8017).  */
+  if (nframe < 2 * hlen + 2)
+    return GPG_ERR_DIGEST_ALGO;
 
   /* We skip step 1a which would be to check that LABELLEN is not
      greater than 2^61-1.  See rfc-3447 7.1.1. */
@@ -834,7 +844,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
 
   /* This code is implemented as described by rfc-3447 9.1.1.  */
 
-  rc = _gcry_md_open (&hd, algo, 0);
+  rc = _gcry_md_open_internal (&hd, algo, 0, 0);
   if (rc)
     return rc;
 
@@ -1005,7 +1015,7 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, int hashed_already,
 
   /* This code is implemented as described by rfc-3447 9.1.2.  */
 
-  rc = _gcry_md_open (&hd, algo, 0);
+  rc = _gcry_md_open_internal (&hd, algo, 0, 0);
   if (rc)
     return rc;
 
@@ -1028,6 +1038,18 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, int hashed_already,
         }
       else
         fips_service_indicator_mark_non_compliant ();
+    }
+
+  /* Check length of EM.  Because we internally use MPI functions we
+     can't do this properly; EMLEN is always the length of the key
+     because octet_string_from_mpi needs to left pad the result with
+     zero to cope with the fact that our MPIs suppress all leading
+     zeroes.  Thus what we test here are merely the digest and salt
+     lengths to the key.  */
+  if (emlen < hlen + saltlen + 2)
+    {
+      rc = GPG_ERR_TOO_SHORT; /* For the hash and saltlen.  */
+      goto leave;
     }
 
   /* Allocate a help buffer and setup some pointers.
@@ -1077,18 +1099,6 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, int hashed_already,
   rc = octet_string_from_mpi (&em, NULL, encoded, emlen);
   if (rc)
     goto leave;
-
-  /* Step 3: Check length of EM.  Because we internally use MPI
-     functions we can't do this properly; EMLEN is always the length
-     of the key because octet_string_from_mpi needs to left pad the
-     result with zero to cope with the fact that our MPIs suppress all
-     leading zeroes.  Thus what we test here are merely the digest and
-     salt lengths to the key.  */
-  if (emlen < hlen + saltlen + 2)
-    {
-      rc = GPG_ERR_TOO_SHORT; /* For the hash and saltlen.  */
-      goto leave;
-    }
 
   /* Step 4: Check last octet.  */
   if (em[emlen - 1] != 0xbc)

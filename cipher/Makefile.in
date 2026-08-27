@@ -270,20 +270,24 @@ am__depfiles_remade = ./$(DEPDIR)/arcfour-amd64.Plo \
 	./$(DEPDIR)/sha512-armv8-aarch64-ce.Plo \
 	./$(DEPDIR)/sha512-avx-amd64.Plo \
 	./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo \
-	./$(DEPDIR)/sha512-avx512-amd64.Plo ./$(DEPDIR)/sha512-ppc.Plo \
+	./$(DEPDIR)/sha512-avx512-amd64.Plo \
+	./$(DEPDIR)/sha512-intel-shaext.Plo ./$(DEPDIR)/sha512-ppc.Plo \
 	./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo \
 	./$(DEPDIR)/sha512-ssse3-amd64.Plo \
 	./$(DEPDIR)/sha512-ssse3-i386.Plo ./$(DEPDIR)/sha512.Plo \
 	./$(DEPDIR)/sm3-aarch64.Plo \
 	./$(DEPDIR)/sm3-armv8-aarch64-ce.Plo \
-	./$(DEPDIR)/sm3-avx-bmi2-amd64.Plo ./$(DEPDIR)/sm3.Plo \
+	./$(DEPDIR)/sm3-avx-bmi2-amd64.Plo \
+	./$(DEPDIR)/sm3-intel-avx2-amd64.Plo ./$(DEPDIR)/sm3.Plo \
 	./$(DEPDIR)/sm4-aarch64.Plo \
 	./$(DEPDIR)/sm4-aesni-avx-amd64.Plo \
 	./$(DEPDIR)/sm4-aesni-avx2-amd64.Plo \
 	./$(DEPDIR)/sm4-armv8-aarch64-ce.Plo \
 	./$(DEPDIR)/sm4-armv9-aarch64-sve-ce.Plo \
 	./$(DEPDIR)/sm4-gfni-avx2-amd64.Plo \
-	./$(DEPDIR)/sm4-gfni-avx512-amd64.Plo ./$(DEPDIR)/sm4-ppc.Plo \
+	./$(DEPDIR)/sm4-gfni-avx512-amd64.Plo \
+	./$(DEPDIR)/sm4-intel-avx2-amd64.Plo \
+	./$(DEPDIR)/sm4-intel-avx512-amd64.Plo ./$(DEPDIR)/sm4-ppc.Plo \
 	./$(DEPDIR)/sm4.Plo ./$(DEPDIR)/sntrup761.Plo \
 	./$(DEPDIR)/stribog.Plo ./$(DEPDIR)/tiger.Plo \
 	./$(DEPDIR)/twofish-aarch64.Plo ./$(DEPDIR)/twofish-amd64.Plo \
@@ -638,6 +642,8 @@ EXTRA_libcipher_la_SOURCES = \
 	serpent-avx512-x86.c serpent-armv7-neon.S \
 	simd-common-aarch64.h simd-common-ppc.h simd-common-riscv.h \
 	sm4.c sm4-aesni-avx-amd64.S sm4-aesni-avx2-amd64.S \
+	sm4-avx2-amd64.h sm4-avx512-amd64.h \
+	sm4-intel-avx2-amd64.S sm4-intel-avx512-amd64.S \
 	sm4-gfni-avx2-amd64.S sm4-gfni-avx512-amd64.S \
 	sm4-aarch64.S sm4-armv8-aarch64-ce.S sm4-armv9-aarch64-sve-ce.S \
 	sm4-ppc.c \
@@ -650,9 +656,11 @@ EXTRA_libcipher_la_SOURCES = \
 	sha256-intel-shaext.c sha256-ppc.c sha256-riscv-zvknha-zvkb.c \
 	sha512.c sha512-ssse3-amd64.S sha512-avx-amd64.S \
 	sha512-avx2-bmi2-amd64.S sha512-avx512-amd64.S \
+	sha512-intel-shaext.c \
 	sha512-armv7-neon.S sha512-armv8-aarch64-ce.S sha512-arm.S \
 	sha512-ppc.c sha512-riscv-zvknhb-zvkb.c sha512-ssse3-i386.c \
-	sm3.c sm3-avx-bmi2-amd64.S sm3-aarch64.S sm3-armv8-aarch64-ce.S \
+	sm3.c sm3-avx-bmi2-amd64.S sm3-intel-avx2-amd64.S sm3-aarch64.S \
+	sm3-armv8-aarch64-ce.S \
 	keccak.c keccak_permute_32.h keccak_permute_64.h \
 	keccak-armv7-neon.S keccak-amd64-avx512.S \
 	stribog.c \
@@ -690,23 +698,20 @@ EXTRA_libcipher_la_SOURCES = \
 @ENABLE_AARCH64_NEON_INTRINSICS_EXTRA_CFLAGS_FALSE@aarch64_simd_cflags = 
 @ENABLE_AARCH64_NEON_INTRINSICS_EXTRA_CFLAGS_TRUE@aarch64_simd_cflags = -O2 -march=armv8-a+simd
 @ENABLE_X86_AVX512_INTRINSICS_EXTRA_CFLAGS_FALSE@avx512f_cflags = 
-@ENABLE_X86_AVX512_INTRINSICS_EXTRA_CFLAGS_TRUE@avx512f_cflags = -mavx512f
-@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_cflags = 
-@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_cflags = -O2 -mstrict-align
+@ENABLE_X86_AVX512_INTRINSICS_EXTRA_CFLAGS_TRUE@avx512f_cflags = -mavx512f -mavx512bw
+@ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_FALSE@riscv_vector_cflags = 
 
-# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
+# Note: -mstrict-align needed for SpacemiT K1 RVV bug (K1 does not support
+# unaligned vector memory access). This is enabled only for plain RVV
+# implementations, RVV-crypto extension implementations expect CPU with proper
+# support for unaligned vector memory access.
 @ENABLE_RISCV_VECTOR_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_cflags = -O2 -march=@MARCH_RVA22U64_WITH_VEC@ -mstrict-align
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_crypto_aes_cflags = 
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_crypto_aes_cflags = -O2 -mstrict-align
-
-# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_aes_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvkned -mstrict-align
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_crypto_sha_cflags = 
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_crypto_sha_cflags = -O2 -mstrict-align
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_sha_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvknha_zvknhb_zvkb -mstrict-align
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_FALSE@riscv_vector_crypto_gcm_cflags = 
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@@SUPPORT_CC_RISCV_MSTRICT_ALIGN_TRUE@riscv_vector_crypto_gcm_cflags = -O2 -mstrict-align
-@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_gcm_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvkg -mstrict-align
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@riscv_vector_crypto_aes_cflags = 
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_aes_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvkned_zvkb
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@riscv_vector_crypto_sha_cflags = 
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_sha_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvknha_zvknhb_zvkb
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_FALSE@riscv_vector_crypto_gcm_cflags = 
+@ENABLE_RISCV_VECTOR_CRYPTO_INTRINSICS_EXTRA_CFLAGS_TRUE@riscv_vector_crypto_gcm_cflags = -O2 -march=@MARCH_RVA23U64_BASE@_zvkg_zvkb
 all: all-am
 
 .SUFFIXES:
@@ -930,6 +935,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-avx-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-avx512-amd64.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-intel-shaext.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-ppc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512-ssse3-amd64.Plo@am__quote@ # am--include-marker
@@ -938,6 +944,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm3-aarch64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm3-armv8-aarch64-ce.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm3-avx-bmi2-amd64.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm3-intel-avx2-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm3.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-aarch64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-aesni-avx-amd64.Plo@am__quote@ # am--include-marker
@@ -946,6 +953,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-armv9-aarch64-sve-ce.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-gfni-avx2-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-gfni-avx512-amd64.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-intel-avx2-amd64.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-intel-avx512-amd64.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4-ppc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sm4.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sntrup761.Plo@am__quote@ # am--include-marker
@@ -1317,6 +1326,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/sha512-avx-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-avx512-amd64.Plo
+	-rm -f ./$(DEPDIR)/sha512-intel-shaext.Plo
 	-rm -f ./$(DEPDIR)/sha512-ppc.Plo
 	-rm -f ./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo
 	-rm -f ./$(DEPDIR)/sha512-ssse3-amd64.Plo
@@ -1325,6 +1335,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/sm3-aarch64.Plo
 	-rm -f ./$(DEPDIR)/sm3-armv8-aarch64-ce.Plo
 	-rm -f ./$(DEPDIR)/sm3-avx-bmi2-amd64.Plo
+	-rm -f ./$(DEPDIR)/sm3-intel-avx2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sm3.Plo
 	-rm -f ./$(DEPDIR)/sm4-aarch64.Plo
 	-rm -f ./$(DEPDIR)/sm4-aesni-avx-amd64.Plo
@@ -1333,6 +1344,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/sm4-armv9-aarch64-sve-ce.Plo
 	-rm -f ./$(DEPDIR)/sm4-gfni-avx2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sm4-gfni-avx512-amd64.Plo
+	-rm -f ./$(DEPDIR)/sm4-intel-avx2-amd64.Plo
+	-rm -f ./$(DEPDIR)/sm4-intel-avx512-amd64.Plo
 	-rm -f ./$(DEPDIR)/sm4-ppc.Plo
 	-rm -f ./$(DEPDIR)/sm4.Plo
 	-rm -f ./$(DEPDIR)/sntrup761.Plo
@@ -1559,6 +1572,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/sha512-avx-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-avx2-bmi2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sha512-avx512-amd64.Plo
+	-rm -f ./$(DEPDIR)/sha512-intel-shaext.Plo
 	-rm -f ./$(DEPDIR)/sha512-ppc.Plo
 	-rm -f ./$(DEPDIR)/sha512-riscv-zvknhb-zvkb.Plo
 	-rm -f ./$(DEPDIR)/sha512-ssse3-amd64.Plo
@@ -1567,6 +1581,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/sm3-aarch64.Plo
 	-rm -f ./$(DEPDIR)/sm3-armv8-aarch64-ce.Plo
 	-rm -f ./$(DEPDIR)/sm3-avx-bmi2-amd64.Plo
+	-rm -f ./$(DEPDIR)/sm3-intel-avx2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sm3.Plo
 	-rm -f ./$(DEPDIR)/sm4-aarch64.Plo
 	-rm -f ./$(DEPDIR)/sm4-aesni-avx-amd64.Plo
@@ -1575,6 +1590,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/sm4-armv9-aarch64-sve-ce.Plo
 	-rm -f ./$(DEPDIR)/sm4-gfni-avx2-amd64.Plo
 	-rm -f ./$(DEPDIR)/sm4-gfni-avx512-amd64.Plo
+	-rm -f ./$(DEPDIR)/sm4-intel-avx2-amd64.Plo
+	-rm -f ./$(DEPDIR)/sm4-intel-avx512-amd64.Plo
 	-rm -f ./$(DEPDIR)/sm4-ppc.Plo
 	-rm -f ./$(DEPDIR)/sm4.Plo
 	-rm -f ./$(DEPDIR)/sntrup761.Plo
@@ -1673,6 +1690,12 @@ sha256-ssse3-i386.o: $(srcdir)/sha256-ssse3-i386.c Makefile
 	`echo $(COMPILE) -c $< | $(instrumentation_munging) `
 
 sha256-ssse3-i386.lo: $(srcdir)/sha256-ssse3-i386.c Makefile
+	`echo $(LTCOMPILE) -c $< | $(instrumentation_munging) `
+
+sha512-intel-shaext.o: $(srcdir)/sha512-intel-shaext.c Makefile
+	`echo $(COMPILE) -c $< | $(instrumentation_munging) `
+
+sha512-intel-shaext.lo: $(srcdir)/sha512-intel-shaext.c Makefile
 	`echo $(LTCOMPILE) -c $< | $(instrumentation_munging) `
 
 crc-intel-pclmul.o: $(srcdir)/crc-intel-pclmul.c Makefile

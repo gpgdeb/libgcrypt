@@ -162,6 +162,9 @@
    GCC flags */
 #undef HAVE_COMPATIBLE_CC_RISCV_VECTOR_INTRINSICS_WITH_CFLAGS
 
+/* Defined if underlying compiler has RISC-V Zicclsm extension enabled */
+#undef HAVE_COMPATIBLE_CC_RISCV_ZICCLSM_ENABLED
+
 /* Defined if underlying compiler supports x86/AVX512 intrinsics */
 #undef HAVE_COMPATIBLE_CC_X86_AVX512_INTRINSICS
 
@@ -350,8 +353,17 @@
 /* Defined if inline assembler supports zSeries vector instructions */
 #undef HAVE_GCC_INLINE_ASM_S390X_VX
 
+/* Defined if inline assembler supports Intel SHA512 instructions */
+#undef HAVE_GCC_INLINE_ASM_SHA512
+
 /* Defined if inline assembler supports SHA Extensions instructions */
 #undef HAVE_GCC_INLINE_ASM_SHAEXT
+
+/* Defined if inline assembler supports Intel SM3 instructions */
+#undef HAVE_GCC_INLINE_ASM_SM3
+
+/* Defined if inline assembler supports Intel SM4 instructions */
+#undef HAVE_GCC_INLINE_ASM_SM4
 
 /* Defined if inline assembler supports SSE4.1 instructions */
 #undef HAVE_GCC_INLINE_ASM_SSE41

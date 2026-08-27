@@ -31,7 +31,7 @@ min_automake_version="1.14"
 m4_define([mym4_package],[libgcrypt])
 m4_define([mym4_major], [1])
 m4_define([mym4_minor], [12])
-m4_define([mym4_micro], [2])
+m4_define([mym4_micro], [3])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -57,9 +57,9 @@ AC_INIT([mym4_package],[mym4_version],[https://bugs.gnupg.org])
 #   (Interfaces removed:    CURRENT++, AGE=0, REVISION=0)
 #   (Interfaces added:      CURRENT++, AGE++, REVISION=0)
 #   (No interfaces changed:                   REVISION++)
-LIBGCRYPT_LT_CURRENT=27
-LIBGCRYPT_LT_AGE=7
-LIBGCRYPT_LT_REVISION=2
+LIBGCRYPT_LT_CURRENT=28
+LIBGCRYPT_LT_AGE=8
+LIBGCRYPT_LT_REVISION=8
 ################################################
 
 AC_SUBST(LIBGCRYPT_LT_CURRENT)
@@ -1585,6 +1585,81 @@ fi
 
 
 #
+# Check whether GCC inline assembler supports Intel SHA512 instructions.
+#
+AC_CACHE_CHECK([whether GCC inline assembler supports Intel SHA512 instructions],
+       [gcry_cv_gcc_inline_asm_sha512],
+       [if test "$mpi_cpu_arch" != "x86" ||
+           test "$try_asm_modules" != "yes" ; then
+          gcry_cv_gcc_inline_asm_sha512="n/a"
+        else
+          gcry_cv_gcc_inline_asm_sha512=no
+          AC_LINK_IFELSE([AC_LANG_PROGRAM(
+          [[void a(void) {
+              __asm__("vsha512msg1 %%xmm1, %%ymm3\n\t":::"cc");
+              __asm__("vsha512msg2 %%ymm1, %%ymm3\n\t":::"cc");
+              __asm__("vsha512rnds2 %%xmm0, %%ymm1, %%ymm3\n\t":::"cc");
+              __asm__("vperm2i128 \$0x21, %%ymm1, %%ymm2, %%ymm3\n\t":::"cc");
+              __asm__("vpalignr \$8, %%ymm1, %%ymm2, %%ymm3\n\t":::"cc");
+              __asm__("vpermq \$0x1b, %%ymm1, %%ymm3\n\t":::"cc");
+              __asm__("vextracti128 \$1, %%ymm0, %%xmm1\n\t":::"cc");
+            }]], [ a(); ] )],
+          [gcry_cv_gcc_inline_asm_sha512=yes])
+        fi])
+if test "$gcry_cv_gcc_inline_asm_sha512" = "yes" ; then
+   AC_DEFINE(HAVE_GCC_INLINE_ASM_SHA512,1,
+     [Defined if inline assembler supports Intel SHA512 instructions])
+fi
+
+
+#
+# Check whether GCC inline assembler supports Intel SM3 instructions.
+#
+AC_CACHE_CHECK([whether GCC inline assembler supports Intel SM3 instructions],
+       [gcry_cv_gcc_inline_asm_sm3],
+       [if test "$mpi_cpu_arch" != "x86" ||
+           test "$try_asm_modules" != "yes" ; then
+          gcry_cv_gcc_inline_asm_sm3="n/a"
+        else
+          gcry_cv_gcc_inline_asm_sm3=no
+          AC_LINK_IFELSE([AC_LANG_PROGRAM(
+          [[void a(void) {
+              __asm__("vsm3msg1 %%xmm2, %%xmm1, %%xmm3\n\t":::"cc");
+              __asm__("vsm3msg2 %%xmm2, %%xmm1, %%xmm3\n\t":::"cc");
+              __asm__("vsm3rnds2 \$0, %%xmm2, %%xmm1, %%xmm3\n\t":::"cc");
+            }]], [ a(); ] )],
+          [gcry_cv_gcc_inline_asm_sm3=yes])
+        fi])
+if test "$gcry_cv_gcc_inline_asm_sm3" = "yes" ; then
+   AC_DEFINE(HAVE_GCC_INLINE_ASM_SM3,1,
+     [Defined if inline assembler supports Intel SM3 instructions])
+fi
+
+
+#
+# Check whether GCC inline assembler supports Intel SM4 instructions.
+#
+AC_CACHE_CHECK([whether GCC inline assembler supports Intel SM4 instructions],
+       [gcry_cv_gcc_inline_asm_sm4],
+       [if test "$mpi_cpu_arch" != "x86" ||
+           test "$try_asm_modules" != "yes" ; then
+          gcry_cv_gcc_inline_asm_sm4="n/a"
+        else
+          gcry_cv_gcc_inline_asm_sm4=no
+          AC_LINK_IFELSE([AC_LANG_PROGRAM(
+          [[void a(void) {
+              __asm__("vsm4key4 %%ymm2, %%ymm1, %%ymm3\n\t":::"cc");
+              __asm__("vsm4rnds4 %%ymm2, %%ymm1, %%ymm3\n\t":::"cc");
+            }]], [ a(); ] )],
+          [gcry_cv_gcc_inline_asm_sm4=yes])
+        fi])
+if test "$gcry_cv_gcc_inline_asm_sm4" = "yes" ; then
+   AC_DEFINE(HAVE_GCC_INLINE_ASM_SM4,1,
+     [Defined if inline assembler supports Intel SM4 instructions])
+fi
+
+
+#
 # Check whether GCC inline assembler supports SSE4.1 instructions.
 #
 AC_CACHE_CHECK([whether GCC inline assembler supports SSE4.1 instructions],
@@ -1759,7 +1834,7 @@ fi
 # Check whether compiler supports x86/AVX512 intrinsics
 #
 _gcc_cflags_save=$CFLAGS
-CFLAGS="$CFLAGS -mavx512f"
+CFLAGS="$CFLAGS -mavx512f -mavx512bw"
 
 AC_CACHE_CHECK([whether compiler supports x86/AVX512 intrinsics],
       [gcry_cv_cc_x86_avx512_intrinsics],
@@ -1768,7 +1843,7 @@ AC_CACHE_CHECK([whether compiler supports x86/AVX512 intrinsics],
 	gcry_cv_cc_x86_avx512_intrinsics="n/a"
       else
 	gcry_cv_cc_x86_avx512_intrinsics=no
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE(
+	AC_LINK_IFELSE([AC_LANG_SOURCE(
 	[[#include <immintrin.h>
 	  __m512i fn(void *in, __m128i y)
 	  {
@@ -1776,10 +1851,17 @@ AC_CACHE_CHECK([whether compiler supports x86/AVX512 intrinsics],
             x = _mm512_loadu_epi32 (in); /* check the GCC bug 90980. */
 	    x = _mm512_maskz_loadu_epi32(_cvtu32_mask16(0xfff0), in)
 		  ^ _mm512_castsi128_si512(y);
+	    x = _mm512_shuffle_epi8(x, x);
 	    asm volatile ("vinserti32x4 \$3, %0, %%zmm6, %%zmm6;\n\t"
 			  "vpxord %%zmm6, %%zmm6, %%zmm6"
 			  ::"x"(y),"r"(in):"memory","xmm6");
 	    return x;
+	  }
+	  int main(void)
+	  {
+	    __m128i y = _mm_setzero_si128();
+	    __m512i r = fn(&y, y);
+	    return (int)_mm_cvtsi128_si32(_mm512_castsi512_si128(r));
 	  }
 	  ]])],
 	[gcry_cv_cc_x86_avx512_intrinsics=yes])
@@ -2303,6 +2385,12 @@ m4_define([GCRY_AARCH64_NEON_INTRINSICS_TEST],
 	memory_barrier_with_vec(in);
 	return in;
       }
+      int main(void)
+      {
+	__m128i v = {0, 0};
+	v = fn(v);
+	return (int)vgetq_lane_u64(v, 0);
+      }
     ]]
   )]
 )
@@ -2314,7 +2402,7 @@ AC_CACHE_CHECK([whether compiler supports AArch64/NEON/crypto intrinsics],
 	gcry_cv_cc_aarch64_neon_intrinsics="n/a"
       else
 	gcry_cv_cc_aarch64_neon_intrinsics=no
-	AC_COMPILE_IFELSE(
+	AC_LINK_IFELSE(
 	  [GCRY_AARCH64_NEON_INTRINSICS_TEST],
 	  [gcry_cv_cc_aarch64_neon_intrinsics=yes])
       fi])
@@ -2333,7 +2421,7 @@ if test "$gcry_cv_cc_aarch64_neon_intrinsics" = "no" &&
     [gcry_cv_cc_aarch64_neon_intrinsics_cflags],
     [
       gcry_cv_cc_aarch64_neon_intrinsics_cflags=no
-      AC_COMPILE_IFELSE(
+      AC_LINK_IFELSE(
 	[GCRY_AARCH64_NEON_INTRINSICS_TEST],
 	[gcry_cv_cc_aarch64_neon_intrinsics_cflags=yes])
     ])
@@ -2372,6 +2460,12 @@ m4_define([GCRY_POWERPC_VECTOR_INTRINSICS_TEST],
 	y = vec_sld_u32 (y, y, 3);
 	return vec_cipher_be (t, in) ^ (block)y;
       }
+      int main(void)
+      {
+	block b = {0};
+	b = fn(b);
+	return (int)vec_extract((vecu32)b, 0);
+      }
     ]]
   )]
 )
@@ -2383,7 +2477,7 @@ AC_CACHE_CHECK([whether compiler supports PowerPC AltiVec/VSX/crypto intrinsics]
 	gcry_cv_cc_ppc_altivec="n/a"
       else
 	gcry_cv_cc_ppc_altivec=no
-	AC_COMPILE_IFELSE(
+	AC_LINK_IFELSE(
 	  [GCRY_POWERPC_VECTOR_INTRINSICS_TEST],
 	  [gcry_cv_cc_ppc_altivec=yes])
       fi])
@@ -2402,7 +2496,7 @@ if test "$gcry_cv_cc_ppc_altivec" = "no" &&
     [gcry_cv_cc_ppc_altivec_cflags],
     [
       gcry_cv_cc_ppc_altivec_cflags=no
-      AC_COMPILE_IFELSE(
+      AC_LINK_IFELSE(
 	[GCRY_POWERPC_VECTOR_INTRINSICS_TEST],
 	[gcry_cv_cc_ppc_altivec_cflags=yes])
     ])
@@ -2708,28 +2802,26 @@ fi
 
 
 #
-# Check whether compiler supports RISC-V -mstrict-align flag
+# Check whether compiler has RISC-V Zicclsm extension enable
 #
-_gcc_cflags_save=$CFLAGS
-# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
-CFLAGS="$CFLAGS -mstrict-align"
-
-AC_CACHE_CHECK([whether compiler supports RISC-V -mstrict-align flag],
-      [gcry_cv_cc_riscv_mstrict_align],
+AC_CACHE_CHECK([whether compiler has RISC-V Zicclsm extension enabled],
+      [gcry_cv_cc_riscv_zicclsm_enabled],
       [if test "$mpi_cpu_arch" != "riscv64" ||
 	  test "$try_asm_modules" != "yes" ; then
-	gcry_cv_cc_riscv_mstrict_align="n/a"
+	gcry_cv_cc_riscv_zicclsm_enabled="n/a"
       else
-	gcry_cv_cc_riscv_mstrict_align=no
-	AC_COMPILE_IFELSE(
-	  [AC_LANG_SOURCE([[void testfn(void) { }]])],
-	  [gcry_cv_cc_riscv_mstrict_align=yes])
+	gcry_cv_cc_riscv_zicclsm_enabled=no
+	AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	  [[#if defined(__riscv_zicclsm) && (__riscv_zicclsm >= 1000000)
+	    int testfunc(void) { return 0; }
+	    #endif
+	    ]], [ testfunc(); ])],
+	  [gcry_cv_cc_riscv_zicclsm_enabled=yes])
       fi])
-AM_CONDITIONAL(SUPPORT_CC_RISCV_MSTRICT_ALIGN,
-	       test "$gcry_cv_cc_riscv_mstrict_align" = "yes")
-
-# Restore flags.
-CFLAGS=$_gcc_cflags_save;
+if test "$gcry_cv_cc_riscv_zicclsm_enabled" = "yes" ; then
+    AC_DEFINE(HAVE_COMPATIBLE_CC_RISCV_ZICCLSM_ENABLED,1,
+	    [Defined if underlying compiler has RISC-V Zicclsm extension enabled])
+fi
 
 
 #
@@ -2771,6 +2863,12 @@ m4_define([GCRY_RISCV_VECTOR_INTRINSICS_TEST],
 	clear_vec_reg_v0();
 	return in;
       }
+      int main(void)
+      {
+	__m128i v = __riscv_vmv_v_x_u8m1(0, 16);
+	v = fn(v);
+	return (int)__riscv_vmv_x_s_u8m1_u8(v);
+      }
     ]]
   )]
 )
@@ -2782,7 +2880,7 @@ AC_CACHE_CHECK([whether compiler supports RISC-V vector intrinsics],
 	gcry_cv_cc_riscv_vector_intrinsics="n/a"
       else
 	gcry_cv_cc_riscv_vector_intrinsics=no
-	AC_COMPILE_IFELSE(
+	AC_LINK_IFELSE(
 	  [GCRY_RISCV_VECTOR_INTRINSICS_TEST],
 	  [gcry_cv_cc_riscv_vector_intrinsics=yes])
       fi])
@@ -2796,7 +2894,10 @@ _gcc_cflags_save=$CFLAGS
 # better code generation for RISC-V vector implementations.
 MARCH_RVA22U64_WITH_VEC=rv64imafdcv_zba_zbb_zbs
 AC_SUBST([MARCH_RVA22U64_WITH_VEC])
-# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
+# Note: -mstrict-align needed for SpacemiT K1 RVV bug (K1 does not support
+# unaligned vector memory access). This is enabled only for plain RVV
+# implementations, RVV-crypto extension implementations detect support for
+# unaligned vector memory access based on Zicclsm extension.
 CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA22U64_WITH_VEC -mstrict-align"
 
 if test "$gcry_cv_cc_riscv_vector_intrinsics" = "no" &&
@@ -2806,7 +2907,7 @@ if test "$gcry_cv_cc_riscv_vector_intrinsics" = "no" &&
     [gcry_cv_cc_riscv_vector_intrinsics_cflags],
     [
       gcry_cv_cc_riscv_vector_intrinsics_cflags=no
-      AC_COMPILE_IFELSE(
+      AC_LINK_IFELSE(
 	[GCRY_RISCV_VECTOR_INTRINSICS_TEST],
 	[gcry_cv_cc_riscv_vector_intrinsics_cflags=yes])
     ])
@@ -2892,6 +2993,13 @@ m4_define([GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
 	vuint32m1_t d = __riscv_vghsh_vv_u32m1(a, b, c, vl);
 	__riscv_vse32_v_u32m1(ptr + 0 * vl, d, vl);
       }
+      void test_rev8(unsigned int *ptr)
+      {
+	int vl = __riscv_vsetvl_e32m1 (4);
+	vuint32m1_t a = __riscv_vle32_v_u32m1(ptr + 0 * vl, vl);
+	vuint32m1_t b = __riscv_vrev8_v_u32m1(a, vl);
+	__riscv_vse32_v_u32m1(ptr + 0 * vl, b, vl);
+      }
       void test_inline_vec_asm(unsigned int *ptr)
       {
 	int vl = __riscv_vsetvl_e32m1 (4);
@@ -2906,6 +3014,17 @@ m4_define([GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
 	);
 	__riscv_vse32_v_u32m1(ptr + 0 * vl, a, vl);
       }
+      int main(void)
+      {
+	unsigned int buf[256];
+	test_sha2(buf);
+	test_aes_key(buf);
+	test_aes_crypt(buf);
+	test_ghash(buf);
+	test_rev8(buf);
+	test_inline_vec_asm(buf);
+	return 0;
+      }
     ]]
   )]
 )
@@ -2917,7 +3036,7 @@ AC_CACHE_CHECK([whether compiler supports RISC-V vector cryptography intrinsics]
 	gcry_cv_cc_riscv_vector_crypto_intrinsics="n/a"
       else
 	gcry_cv_cc_riscv_vector_crypto_intrinsics=no
-	AC_COMPILE_IFELSE(
+	AC_LINK_IFELSE(
 	  [GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
 	  [gcry_cv_cc_riscv_vector_crypto_intrinsics=yes])
       fi])
@@ -2929,19 +3048,22 @@ fi
 _gcc_cflags_save=$CFLAGS
 # Enable B extension (Zba+Zbb+Zbs) to align with RVA23U64 profile and for
 # better code generation for RISC-V vector implementations.
-MARCH_RVA23U64_BASE=${MARCH_RVA22U64_WITH_VEC}
-MARCH_RVA23U64_WITH_VEC_CRYPTO=${MARCH_RVA23U64_BASE}_zvbc_zvkg_zvkn_zvks
+if test "$gcry_cv_cc_riscv_zicclsm_enabled" = "yes" ; then
+  MARCH_RVA23U64_BASE=${MARCH_RVA22U64_WITH_VEC}_zicclsm
+else
+  MARCH_RVA23U64_BASE=${MARCH_RVA22U64_WITH_VEC}
+fi
+MARCH_RVA23U64_WITH_VEC_CRYPTO=${MARCH_RVA23U64_BASE}_zvbc_zvkb_zvkg_zvkn_zvks
 AC_SUBST([MARCH_RVA23U64_BASE])
-# Note: -mstrict-align needed for GCC-14 bug (disable unaligned vector loads)
-CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO -mstrict-align"
+CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO"
 
 if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "no" &&
    test "$mpi_cpu_arch" = "riscv64" &&
    test "$try_asm_modules" = "yes" ; then
-  AC_CACHE_CHECK([whether compiler supports RISC-V vector intrinsics with extra GCC flags],
+  AC_CACHE_CHECK([whether compiler supports RISC-V vector cryptography intrinsics with extra GCC flags],
     [gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags],
     [gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags=no
-    AC_COMPILE_IFELSE(
+    AC_LINK_IFELSE(
       [GCRY_RISCV_VECTOR_CRYPTO_INTRINSICS_TEST],
       [gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags=yes])])
   if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes" ; then
@@ -2972,7 +3094,7 @@ if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "yes" ||
   # Setup flags for test if needed.
   _gcc_cflags_save=$CFLAGS
   if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes"; then
-    CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO -mstrict-align"
+    CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO"
   fi
 
   # Disable LTO optimization for following check to generate
@@ -3021,7 +3143,7 @@ if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics" = "yes" ||
   # Setup flags for test.
   _gcc_cflags_save=$CFLAGS
   if test "$gcry_cv_cc_riscv_vector_crypto_intrinsics_cflags" = "yes"; then
-    CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO -mstrict-align"
+    CFLAGS="$CFLAGS -O2 -march=$MARCH_RVA23U64_WITH_VEC_CRYPTO"
   else
     CFLAGS="$CFLAGS -O2"
   fi
@@ -3764,6 +3886,8 @@ if test "$found" = "1" ; then
          GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS sm4-aesni-avx2-amd64.lo"
          GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS sm4-gfni-avx2-amd64.lo"
          GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS sm4-gfni-avx512-amd64.lo"
+         GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS sm4-intel-avx2-amd64.lo"
+         GCRYPT_ASM_CIPHERS="$GCRYPT_ASM_CIPHERS sm4-intel-avx512-amd64.lo"
       ;;
       aarch64-*-*)
          # Build with the assembly implementation
@@ -4008,6 +4132,13 @@ if test "$found" = "1" ; then
          GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sha512-riscv-zvknhb-zvkb.lo"
       ;;
    esac
+
+   case "$mpi_cpu_arch" in
+     x86)
+       # Build with the Intel SHA512 implementation
+       GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sha512-intel-shaext.lo"
+     ;;
+   esac
 fi
 
 LIST_MEMBER(sha3, $enabled_digests)
@@ -4073,6 +4204,7 @@ if test "$found" = "1" ; then
      x86_64-*-*)
         # Build with the assembly implementation
         GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sm3-avx-bmi2-amd64.lo"
+        GCRYPT_ASM_DIGESTS="$GCRYPT_ASM_DIGESTS sm3-intel-avx2-amd64.lo"
      ;;
      aarch64-*-*)
         # Build with the assembly implementation
