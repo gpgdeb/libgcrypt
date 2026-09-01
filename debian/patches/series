@@ -1,3 +1,4 @@
 12_lessdeps_libgcrypt-config.diff
 15_multiarchpath_in_-L.diff
 25_norevisionfromgit.diff
+1.12.3/sm4-add-separate-configure-check-for-AVX512-SM4-instructions.patch
