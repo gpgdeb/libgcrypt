@@ -1,3 +1,10 @@
+libgcrypt20 (1.12.3-2) unstable; urgency=medium
+
+  * Added patch to fix AVX512 SM4 instructions
+  * removed unused patches
+
+ -- meik michalke <meik.michalke@gnupg.com>  Tue, 01 Sep 2026 10:26:24 +0200
+
 libgcrypt20 (1.12.3-1) unstable; urgency=medium
 
   * New upstream release
